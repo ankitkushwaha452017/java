@@ -1,0 +1,871 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Spring Security Interview Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky topic bar, six colour-coded topic sections, one card per question
+   (Interview line in English, Hinglish samjho, key points, code), then practice, checklist, links. */
+:root {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --fg: #14172b;
+  --muted: #566079;
+  --border: #dde1ee;
+  --code-bg: #101426;
+  --code-fg: #e6e9ff;
+  --on-tone: #ffffff;
+  --warn-bg: #fff4d6;
+  --warn-ink: #7a4a00;
+  --tip-bg: #e3f6e9;
+  --tip-ink: #14532d;
+
+  --core: #4f46e5;  --core-ink: #4338ca;  --core-tint: #ecebff;
+  --auth: #0f9e8f;  --auth-ink: #0b766b;  --auth-tint: #d9f5f1;
+  --role: #0284c7;  --role-ink: #0369a1;  --role-tint: #def1fd;
+  --jwt:  #ea580c;  --jwt-ink:  #c2410c;  --jwt-tint:  #ffe9d6;
+  --web:  #e11d48;  --web-ink:  #be123c;  --web-tint:  #ffe3e9;
+  --prod: #a21caf;  --prod-ink: #86198f;  --prod-tint: #f8e4fb;
+
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1120; --surface: #171b2f; --fg: #eceefb; --muted: #a3a9c6; --border: #2a3050;
+    --code-bg: #0a0d1a; --code-fg: #e6e9ff; --on-tone: #0e1120;
+    --warn-bg: #3a2c0c; --warn-ink: #ffd88a; --tip-bg: #12341f; --tip-ink: #9ae6b4;
+    --core: #8b8cff; --core-ink: #a9aaff; --core-tint: #22254d;
+    --auth: #2dd4bf; --auth-ink: #5eead4; --auth-tint: #11332f;
+    --role: #38bdf8; --role-ink: #7dd3fc; --role-tint: #10304a;
+    --jwt:  #fb923c; --jwt-ink:  #fdba74; --jwt-tint:  #3a2314;
+    --web:  #fb7185; --web-ink:  #fda4af; --web-tint:  #3d1823;
+    --prod: #e879f9; --prod-ink: #f0abfc; --prod-tint: #351a3d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1120; --surface: #171b2f; --fg: #eceefb; --muted: #a3a9c6; --border: #2a3050;
+  --code-bg: #0a0d1a; --code-fg: #e6e9ff; --on-tone: #0e1120;
+  --warn-bg: #3a2c0c; --warn-ink: #ffd88a; --tip-bg: #12341f; --tip-ink: #9ae6b4;
+  --core: #8b8cff; --core-ink: #a9aaff; --core-tint: #22254d;
+  --auth: #2dd4bf; --auth-ink: #5eead4; --auth-tint: #11332f;
+  --role: #38bdf8; --role-ink: #7dd3fc; --role-tint: #10304a;
+  --jwt:  #fb923c; --jwt-ink:  #fdba74; --jwt-tint:  #3a2314;
+  --web:  #fb7185; --web-ink:  #fda4af; --web-tint:  #3d1823;
+  --prod: #e879f9; --prod-ink: #f0abfc; --prod-tint: #351a3d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.6; padding-inline: 16px; }
+.wrap { max-width: 980px; margin-inline: auto; padding-block: 24px 64px; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--core); outline-offset: 2px; border-radius: 4px; }
+
+/* topic tones */
+[data-t="core"] { --tone: var(--core); --ink: var(--core-ink); --tint: var(--core-tint); }
+[data-t="auth"] { --tone: var(--auth); --ink: var(--auth-ink); --tint: var(--auth-tint); }
+[data-t="role"] { --tone: var(--role); --ink: var(--role-ink); --tint: var(--role-tint); }
+[data-t="jwt"]  { --tone: var(--jwt);  --ink: var(--jwt-ink);  --tint: var(--jwt-tint); }
+[data-t="web"]  { --tone: var(--web);  --ink: var(--web-ink);  --tint: var(--web-tint); }
+[data-t="prod"] { --tone: var(--prod); --ink: var(--prod-ink); --tint: var(--prod-tint); }
+
+/* header */
+.hero { display: grid; gap: 12px; padding-block: 8px 20px; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(32px, 6vw, 52px); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.02em; }
+.hero p { margin: 0; color: var(--muted); max-width: 62ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--tint); color: var(--ink); }
+.pill i { width: 9px; height: 9px; border-radius: 50%; background: var(--tone); display: inline-block; }
+
+/* sticky nav */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; margin-inline: -16px; padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); display: grid; gap: 8px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.chip { flex: none; text-decoration: none; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--tint); color: var(--ink); border: 1px solid transparent; white-space: nowrap; }
+.chip:hover { border-color: var(--tone); }
+.chip.plain { background: var(--surface); color: var(--fg); border-color: var(--border); }
+.search { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); font: inherit; font-size: 15px; }
+
+/* priority box */
+.start { margin-block: 24px; padding: 18px 20px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); display: grid; gap: 10px; }
+.start h2 { margin: 0; font-family: var(--font-display); font-size: 20px; }
+.start p { margin: 0; color: var(--muted); }
+.qnums { display: flex; flex-wrap: wrap; gap: 6px; }
+.qnum { text-decoration: none; font-family: var(--font-mono); font-size: 13px; font-weight: 500; padding: 3px 9px; border-radius: 8px; background: var(--tint); color: var(--ink); }
+.qnum:hover { background: var(--tone); color: var(--on-tone); }
+
+/* sections */
+section.topic { margin-block: 40px 0; scroll-margin-top: 110px; }
+.sec-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid var(--tone); }
+.sec-head h2 { margin: 0; font-family: var(--font-display); font-size: clamp(24px, 4vw, 32px); color: var(--ink); text-wrap: balance; }
+.sec-head span { color: var(--muted); font-size: 14px; }
+.cards { display: grid; gap: 18px; }
+
+/* card */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: grid; gap: 14px; scroll-margin-top: 110px; min-width: 0; }
+.card[hidden] { display: none; }
+.card-top { display: flex; gap: 12px; align-items: flex-start; }
+.qbadge { flex: none; min-width: 46px; height: 34px; padding-inline: 8px; display: grid; place-items: center; border-radius: 10px; background: var(--tone); color: var(--on-tone); font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+.card h3 { margin: 0; font-family: var(--font-display); font-size: clamp(19px, 3vw, 23px); line-height: 1.25; text-wrap: balance; min-width: 0; padding-top: 2px; }
+.star { display: inline-block; margin-left: 8px; vertical-align: middle; font-family: var(--font-body); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--tone); color: var(--on-tone); }
+
+.say-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.say { border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.say.en { background: var(--tint); }
+.say.hi { background: var(--bg); border: 1px dashed var(--tone); }
+.say h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+.say p { margin: 0; font-size: 16px; }
+.say.en p { font-weight: 500; }
+.say strong { font-weight: 700; color: var(--ink); background: var(--surface); padding: 0 5px; border-radius: 5px; }
+
+.deep { border-radius: 12px; border: 1px solid var(--border); border-left: 4px solid var(--tone); padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.deep h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+.deep h5 { margin: 10px 0 0; font-family: var(--font-display); font-size: 17px; color: var(--ink); text-wrap: balance; }
+.deep p { margin: 0; }
+
+/* diagrams */
+.fig { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.figwrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); padding: 10px; }
+.figwrap svg { display: block; width: 100%; min-width: 560px; height: auto; color: var(--fg); }
+.fig figcaption { color: var(--muted); font-size: 14px; }
+.fig text { fill: currentColor; font-family: var(--font-body); font-size: 12.5px; }
+.fig text.mono { font-family: var(--font-mono); font-size: 12px; }
+.fig text.b { font-weight: 700; }
+.fig text.dot { font-size: 26px; font-weight: 700; }
+.fig text.sm { font-size: 11.5px; fill: var(--muted); }
+.fig text.red { fill: var(--web-ink); }
+.fig text.grn { fill: var(--auth-ink); }
+.fig .box { fill: var(--tint); stroke: var(--tone); stroke-width: 1.5; }
+.fig .plain { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
+.fig .redbox { fill: var(--web-tint); stroke: var(--web); stroke-width: 1.5; }
+.fig .grnbox { fill: var(--auth-tint); stroke: var(--auth); stroke-width: 1.5; }
+.fig .k-core { fill: var(--core-tint); stroke: var(--core); stroke-width: 1.5; }
+.fig .k-role { fill: var(--role-tint); stroke: var(--role); stroke-width: 1.5; }
+.fig .k-jwt { fill: var(--jwt-tint); stroke: var(--jwt); stroke-width: 1.5; }
+.fig .k-web { fill: var(--web-tint); stroke: var(--web); stroke-width: 1.5; }
+.fig .k-auth { fill: var(--auth-tint); stroke: var(--auth); stroke-width: 1.5; }
+.fig .k-prod { fill: var(--prod-tint); stroke: var(--prod); stroke-width: 1.5; }
+.fig .ln { stroke: currentColor; stroke-width: 1.5; fill: none; }
+.fig .redln { stroke: var(--web); stroke-width: 1.75; fill: none; }
+.fig .grnln { stroke: var(--auth); stroke-width: 1.75; fill: none; }
+.fig .dash { stroke-dasharray: 5 4; }
+.fig .life { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
+.mk { fill: currentColor; }
+.mkr { fill: var(--web); }
+.mkg { fill: var(--auth); }
+ul.pts { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+ul.pts li { padding-left: 22px; position: relative; min-width: 0; }
+ul.pts li::before { content: ""; position: absolute; left: 4px; top: .6em; width: 8px; height: 8px; border-radius: 3px; background: var(--tone); }
+.sub { margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.flow span { padding: 5px 10px; border-radius: 8px; background: var(--tint); color: var(--ink); font-size: 14px; font-weight: 600; }
+.flow b { color: var(--tone); font-weight: 700; }
+
+ol.steps { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; counter-reset: s; }
+ol.steps li { counter-increment: s; padding-left: 34px; position: relative; }
+ol.steps li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; border-radius: 50%; background: var(--tone); color: var(--on-tone); font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+
+.tablewrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; vertical-align: top; }
+th { background: var(--tone); color: var(--on-tone); font-weight: 600; white-space: nowrap; }
+td { border-top: 1px solid var(--border); }
+td code, th code { font-family: var(--font-mono); font-size: 13px; }
+
+pre { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; border-left: 4px solid var(--tone); }
+code.i { font-family: var(--font-mono); font-size: .88em; background: var(--tint); color: var(--ink); padding: 1px 6px; border-radius: 6px; }
+
+.note { border-radius: 12px; padding: 11px 14px; font-size: 15px; display: grid; gap: 2px; }
+.note b { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.note.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.note.tip { background: var(--tip-bg); color: var(--tip-ink); }
+
+.refs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px; border-top: 1px solid var(--border); }
+.refs small { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.refs a { font-size: 13px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--tone); color: var(--ink); }
+.refs a:hover { background: var(--tone); color: var(--on-tone); }
+
+/* practice */
+.practice { display: grid; gap: 10px; }
+details.pq { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0; }
+details.pq summary { cursor: pointer; padding: 12px 16px; font-weight: 600; display: flex; gap: 10px; align-items: center; list-style: none; }
+details.pq summary::-webkit-details-marker { display: none; }
+details.pq summary .qbadge { height: 28px; min-width: 34px; font-size: 13px; }
+details.pq summary::after { content: "Answer dekho"; margin-left: auto; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+details.pq[open] summary::after { content: "Chhupao"; }
+details.pq .ans { padding: 0 16px 14px; margin: 0; color: var(--fg); }
+
+.check { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 8px; }
+.check label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-weight: 500; }
+.check input { width: 18px; height: 18px; accent-color: var(--tone); flex: none; }
+.check input:checked + span { text-decoration: line-through; color: var(--muted); }
+.progress { height: 8px; border-radius: 99px; background: var(--border); overflow: hidden; }
+.progress div { height: 100%; width: 0; background: var(--tone); transition: width .25s; }
+
+.final { margin-top: 24px; padding: 18px 20px; border-radius: 16px; background: var(--tint); color: var(--fg); display: grid; gap: 8px; }
+.final h3 { margin: 0; font-family: var(--font-display); color: var(--ink); }
+.final p { margin: 0; }
+
+/* link table */
+.links { display: grid; gap: 10px; }
+.lrow { background: var(--surface); border: 1px solid var(--border); border-left: 6px solid var(--tone); border-radius: 12px; padding: 12px 16px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .5fr) minmax(0, 1.2fr); gap: 8px 16px; align-items: center; }
+.lrow .lt { font-weight: 600; }
+.lrow .lq { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.lrow .ll { display: flex; flex-wrap: wrap; gap: 6px; }
+.lrow .ll a { font-size: 13px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 8px; background: var(--tint); color: var(--ink); }
+.lrow .ll a:hover { background: var(--tone); color: var(--on-tone); }
+.fine { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+@media (max-width: 640px) {
+  .lrow { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  details.pq summary { flex-wrap: wrap; }
+  details.pq summary::after { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .progress div { transition: none; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<marker id="ah" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mk" d="M0,0 L9,4.5 L0,9 z"/></marker>
+<marker id="ahr" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mkr" d="M0,0 L9,4.5 L0,9 z"/></marker>
+<marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mkg" d="M0,0 L9,4.5 L0,9 z"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header class="hero" data-t="core">
+    <div class="eyebrow">Java / Spring Boot &middot; SDE-2 backend interviews</div>
+    <h1>Spring Security Interview Notes</h1>
+    <p>42 questions, topic ke hisaab se. Har question mein pehle English mein interview-ready definition, phir Hinglish mein asaan samjhaana, key points, code aur reference links.</p>
+    <div class="legend" id="legend"></div>
+  </header>
+
+  <div class="bar">
+    <div class="chips" id="chips"></div>
+    <input class="search" id="search" type="search" placeholder="Search karo: jwt, csrf, refresh, 401, bcrypt ..." aria-label="Search questions">
+  </div>
+
+  <div class="start" data-t="core">
+    <h2>Pehle yeh 11 questions padho</h2>
+    <p>Har answer 30 se 60 second mein bolne ki practice karo. Phir code example bina notes dekhe likho.</p>
+    <div class="qnums" id="prio"></div>
+  </div>
+
+  <main id="topics"></main>
+
+  <section class="topic" id="practice" data-t="prod">
+    <div class="sec-head"><h2>Practice: interviewer follow-ups</h2><span>Pehle khud bolo, phir answer kholo</span></div>
+    <div class="practice" id="pq"></div>
+  </section>
+
+  <section class="topic" id="checklist" data-t="auth">
+    <div class="sec-head"><h2>Quick revision checklist</h2><span id="cnt">0 / 15 done</span></div>
+    <div class="progress" aria-hidden="true"><div id="bar"></div></div>
+    <div class="check" id="check" style="margin-top:12px"></div>
+    <div class="final" data-t="prod">
+      <h3>Final interview tip</h3>
+      <p>Har answer mein teen cheezein bolo: <b>risk kya hai</b>, <b>server par kya action loge</b>, aur <b>future mein issue kaise rokoge</b>. Isse answer sirf definition nahi rehta, production-level ban jaata hai.</p>
+      <p>Sabse important scenarios: refresh-token theft, rotation aur reuse detection, access-token revocation, role change, concurrent refresh requests, aur API authorization (BOLA).</p>
+    </div>
+  </section>
+
+  <section class="topic" id="links" data-t="role">
+    <div class="sec-head"><h2>Reference links by topic</h2><span>Official docs aur standards</span></div>
+    <p class="fine">Yeh links maine open karke verify nahi kiye. Agar koi page move ho gaya ho toh docs site par search kar lena.</p>
+    <div class="links" id="linkrows"></div>
+  </section>
+</div>
+
+<script>
+var TOPICS = [
+  { k: "core", name: "Basics and Setup", sub: "Spring Security kya hai, kaise chalu hota hai, filter chain" },
+  { k: "auth", name: "Login and Passwords", sub: "Authentication, UserDetailsService, BCrypt" },
+  { k: "role", name: "Roles and Access Control", sub: "Roles, authorities, method security, 401 vs 403" },
+  { k: "jwt",  name: "JWT and Tokens", sub: "JWT, access/refresh token, OAuth 2.0, stateless" },
+  { k: "web",  name: "Attacks and API Hardening", sub: "CSRF, CORS, brute-force, REST API security" },
+  { k: "prod", name: "Production Scenarios", sub: "Real-time sawaal: chori, logout, role change, concurrency" }
+];
+
+var L = {
+  home: ["Spring Security Reference", "https://docs.spring.io/spring-security/reference/index.html"],
+  servlet: ["Servlet Architecture", "https://docs.spring.io/spring-security/reference/servlet/architecture.html"],
+  authArch: ["Authentication Architecture", "https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html"],
+  pwd: ["Password Storage", "https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html"],
+  method: ["Method Security", "https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html"],
+  csrf: ["CSRF in Spring Security", "https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html"],
+  cors: ["CORS in Spring Security", "https://docs.spring.io/spring-security/reference/servlet/integrations/cors.html"],
+  oauthJwt: ["OAuth2 Resource Server JWT", "https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html"],
+  rfc7519: ["RFC 7519 JWT", "https://datatracker.ietf.org/doc/html/rfc7519"],
+  rfc6749: ["RFC 6749 OAuth 2.0", "https://datatracker.ietf.org/doc/html/rfc6749"],
+  m401: ["MDN: 401", "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"],
+  m403: ["MDN: 403", "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403"],
+  mcors: ["MDN: CORS", "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"],
+  owPwd: ["OWASP Password Storage", "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"],
+  owJwt: ["OWASP JWT Cheat Sheet", "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html"],
+  owCsrf: ["OWASP CSRF Prevention", "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"],
+  owBola: ["OWASP API1: BOLA", "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"]
+};
+
+var PRIORITY = [5, 7, 9, 10, 11, 12, 13, 15, 18, 20, 22];
+
+/* n = question number, t = topic, q = title, en = interview definition, hi = Hinglish samjho,
+   pts = key points, flow = arrow chips, steps = numbered list, table, code, note {w|t}, ln = link keys */
+var Q = [
+{ n:1, t:"core", q:"What is Spring Security?",
+  en:"Spring Security is a framework that provides **authentication** (who are you), **authorization** (what can you access) and protection against common attacks like **CSRF** and **session fixation**. It works through a chain of servlet **filters** and integrates with Spring Boot, **JWT**, **OAuth 2.0** and **method-level security**.",
+  hi:"Ye Java app ka security guard hai. Pehle poochta hai 'tum kaun ho?', phir dekhta hai 'tum kya kar sakte ho?', aur hacking attacks se bachata hai.",
+  pts:["Authentication: Who are you?","Authorization: What are you allowed to access?","Works with Spring Boot, REST APIs, JWT, OAuth 2.0 and method-level security."],
+  ln:["home"] },
+{ n:2, t:"core", q:"How do you enable Spring Security in Spring Boot?",
+  en:"I add the **spring-boot-starter-security** dependency. Spring Boot **auto-configuration** then secures every endpoint with a default **SecurityFilterChain**, **form login / HTTP Basic**, and a generated password for the default user. In real projects I override it with my own **SecurityFilterChain** bean.",
+  hi:"Bas starter-security dependency daalo. Boot khud saare endpoints lock kar deta hai aur logs mein ek generated password deta hai, jo sirf development ke liye hota hai.",
+  code:"<dependency>\n    <groupId>org.springframework.boot</groupId>\n    <artifactId>spring-boot-starter-security</artifactId>\n</dependency>",
+  note:{t:"Interview point", x:"Real applications mein hum default setup ko SecurityFilterChain bean se customize karte hain."},
+  ln:["home"] },
+{ n:3, t:"core", q:"What is the default security configuration?",
+  en:"With the starter added, **all endpoints require authentication** by default. Boot auto-configures **form login** and **HTTP Basic**, creates an in-memory user named **user** with a **generated password** printed in the logs, and keeps **CSRF protection** on. This is for development only, never production.",
+  hi:"Dependency add karte hi sab kuch locked ho jaata hai. Default user 'user' hota hai aur password console mein print hota hai. Production mein ye kabhi use nahi karte.",
+  pts:["Most endpoints require authentication.","Form login and HTTP Basic are commonly auto-configured, depending on the setup.","Default user is user, with a generated password.","The generated password is for development, not production."],
+  ln:["home"] },
+{ n:4, t:"auth", q:"What is the difference between authentication and authorization?",
+  en:"**Authentication** verifies **identity** (who you are), for example with username and password. **Authorization** decides **access** (what you can do) using **roles** and **authorities**. Failed authentication gives **401 Unauthorized**; failed authorization gives **403 Forbidden**.",
+  hi:"Authentication matlab login: 'tum kaun ho?'. Authorization matlab permission: 'tum kya kar sakte ho?'. Galat login par 401 aata hai, permission na ho toh 403.",
+  table:{ head:["Authentication","Authorization"], rows:[["Verifies identity","Checks permissions"],["Happens before access is granted","Decides what the identity can access"],["Example: username and password","Example: only ADMIN can delete users"]] },
+  note:{t:"Example", x:"User login kar leta hai, toh authentication pass. Phir wo admin-only API try karta hai bina role ke, toh authorization fail aur 403 Forbidden."},
+  ln:["m401","m403"] },
+{ n:5, t:"auth", q:"What is UserDetailsService?",
+  en:"**UserDetailsService** is a core interface with one method, **loadUserByUsername()**, that loads a user as a **UserDetails** object from a data source like a database. It only loads the user. Password verification is done by the **AuthenticationProvider** with a **PasswordEncoder**.",
+  hi:"Ye username se user ki details database se nikaal kar deta hai. Password match karna iska kaam nahi hai, wo AuthenticationProvider karta hai.",
+  code:"@Service\npublic class CustomUserDetailsService\n        implements UserDetailsService {\n\n    private final UserRepository repository;\n\n    public CustomUserDetailsService(UserRepository repository) {\n        this.repository = repository;\n    }\n\n    @Override\n    public UserDetails loadUserByUsername(String username) {\n        User user = repository.findByUsername(username)\n            .orElseThrow(() ->\n                new UsernameNotFoundException(\"User not found\"));\n\n        return User.withUsername(user.getUsername())\n            .password(user.getPassword())\n            .authorities(user.getRole())\n            .build();\n    }\n}",
+  note:{t:"Assume", x:"user.getPassword() already returns an encoded password, and user.getRole() returns something like ROLE_ADMIN."},
+  ln:["authArch"] },
+{ n:6, t:"auth", q:"How do you store passwords securely?",
+  en:"I never store plain-text passwords. I store a **one-way, salted, adaptive hash** using **BCryptPasswordEncoder** (or Argon2 / PBKDF2). On login, Spring compares the submitted password with the stored hash through **PasswordEncoder.matches()**. Hashing is not encryption.",
+  hi:"Password kabhi seedha save nahi karte. BCrypt use karte hain jo password ko salt ke saath hash bana deta hai. Hashing encryption nahi hai, original password wapas nahi nikalta.",
+  code:"@Bean\nPasswordEncoder passwordEncoder() {\n    return new BCryptPasswordEncoder();\n}\n\n// While registering a user\nString encoded = passwordEncoder.encode(request.getPassword());\nuser.setPassword(encoded);",
+  deep:[
+   ["Kyun hash, aur BCrypt hi kyun?","Hash one-way hota hai: password se hash ban sakta hai, par hash se password wapas nahi nikalta. BCrypt isme salt (har password ke liye random string) aur slow rounds (cost factor, Spring default 10) jodta hai, isliye same password ke hash alag aate hain aur brute-force bahut mehnga ho jaata hai. Poori detail Q27 mein hai."],
+   ["Register vs login","Register par encode() se hash banake DB mein save karte hain. Login par Spring matches(raw, storedHash) chalata hai, jo stored hash ke andar se salt aur cost nikaal leta hai. Compare hamesha matches() se karo, equals() se nahi, kyunki encode() har baar alag output deta hai."]
+  ],
+  pts:["During login, Spring compares the submitted password with the stored hash through the authentication provider and password encoder."],
+  note:{t:"Follow-up", x:"Hashing is not encryption. A password hash is one-way, and BCrypt adds a salt."},
+  ln:["pwd","owPwd"] },
+{ n:7, t:"core", q:"What is SecurityFilterChain?",
+  en:"**SecurityFilterChain** is the bean that defines the **HttpSecurity** rules: which requests are public (**permitAll**), which need login (**authenticated**), which need a **role** or **authority**, and which mechanisms (form login, Basic, JWT, CSRF, CORS, session policy) are enabled. It replaced the deprecated **WebSecurityConfigurerAdapter**.",
+  hi:"Ye rules ki list hai. Kaun se URL sabke liye khule hain, kaun se login maangte hain, aur kaun se sirf ADMIN ke liye hain. Bean banao aur http.build() return karo.",
+  code:"@Configuration\n@EnableMethodSecurity\npublic class SecurityConfig {\n\n    @Bean\n    SecurityFilterChain securityFilterChain(HttpSecurity http)\n            throws Exception {\n\n        http\n            .csrf(csrf -> csrf.disable())\n            .authorizeHttpRequests(auth -> auth\n                .requestMatchers(\"/auth/**\").permitAll()\n                .requestMatchers(\"/admin/**\").hasRole(\"ADMIN\")\n                .anyRequest().authenticated()\n            )\n            .httpBasic(Customizer.withDefaults());\n\n        return http.build();\n    }\n}",
+  pts:["permitAll(): anyone can access.","authenticated(): login is required.","hasRole(\"ADMIN\"): needs the ROLE_ADMIN authority.","hasAuthority(\"USER_READ\"): needs that exact authority."],
+  note:{w:1, t:"Dhyan do", x:"Ye Spring Boot 3 / Security 6+ ka simplified example hai. CSRF disable karna aur HTTP Basic production ke universal defaults nahi hain. Authentication mechanism aur architecture ke hisaab se choose karo."},
+  ln:["servlet"] },
+{ n:8, t:"role", q:"What is Role-Based Access Control (RBAC)?",
+  en:"**RBAC** (Role-Based Access Control) grants access based on the **role** assigned to a user, such as ADMIN or USER. In Spring I enforce it with **hasRole()** in the filter chain or **@PreAuthorize** on methods, with **@EnableMethodSecurity** turned on.",
+  hi:"Role ke basis par permission milti hai. ADMIN delete kar sakta hai, normal USER nahi. Method par @PreAuthorize laga do aur @EnableMethodSecurity chalu rakho.",
+  code:"@PreAuthorize(\"hasRole('ADMIN')\")\n@DeleteMapping(\"/users/{id}\")\npublic void deleteUser(@PathVariable Long id) {\n    userService.deleteUser(id);\n}",
+  note:{t:"Important follow-up", x:"hasRole(\"ADMIN\") andar se ROLE_ADMIN check karta hai. hasAuthority(\"ROLE_ADMIN\") exact string check karta hai."},
+  ln:["method"] },
+{ n:9, fig:["q9"], t:"auth", q:"What is the difference between UserDetailsService and AuthenticationProvider?",
+  en:"**UserDetailsService** only **loads** user data. **AuthenticationProvider** performs the actual **authentication**: it takes the credentials, uses the loaded user and the **PasswordEncoder**, and returns an authenticated **Authentication** object. **DaoAuthenticationProvider** is the standard one for username/password, and it is called by the **AuthenticationManager** (**ProviderManager**).",
+  hi:"UserDetailsService sirf user laata hai. AuthenticationProvider password match karke decide karta hai ki login sahi hai ya nahi. DaoAuthenticationProvider username/password ke liye sabse common hai.",
+  flow:["Login request","AuthenticationManager","AuthenticationProvider","UserDetailsService + PasswordEncoder","Authenticated or failure"],
+  ln:["authArch"] },
+{ n:10, t:"web", q:"How do you secure REST APIs?",
+  en:"I secure REST APIs with **authentication and authorization**, **JWT or OAuth 2.0**, **HTTPS/TLS**, **input validation**, a strict **CORS** policy, **rate limiting** and **BCrypt** password storage. I also handle **exceptions** properly (401/403), apply **least privilege**, and never log secrets or tokens.",
+  hi:"Ek hi cheez se API secure nahi hoti. Login + permission, HTTPS, input validation, rate limit, aur logs mein secrets na aana, sab milke kaam karte hain.",
+  pts:["Validate inputs and request sizes.","Keep secrets out of source code.","Apply rate limits to login and sensitive endpoints.","Validate token issuer, audience, expiry and signature.","Use least-privilege access for services and database accounts.","Avoid logging passwords, access tokens or personal data."],
+  code:"http.authorizeHttpRequests(auth -> auth\n    .requestMatchers(\"/public/**\").permitAll()\n    .requestMatchers(\"/admin/**\").hasRole(\"ADMIN\")\n    .anyRequest().authenticated()\n);",
+  ln:["owJwt","owPwd"] },
+{ n:11, fig:["q11"], t:"jwt", q:"What is JWT, and how does it work?",
+  en:"**JWT** (JSON Web Token) is a compact, **signed** token in the form **Header.Payload.Signature**. The header holds the **algorithm**, the payload holds **claims** (sub, exp, iss, aud, roles), and the **signature** proves **integrity and authenticity**. It is signed, not encrypted, and is sent as a **Bearer** token in the **Authorization** header.",
+  hi:"JWT ek chhota signed token hai: Header.Payload.Signature. Server signature dekh kar verify karta hai ki token asli hai. Ye signed hai, encrypted nahi, isliye payload mein password mat daalo.",
+  pts:["Header: token type and signing algorithm.","Payload: claims such as subject, expiry and roles.","Signature: lets the server verify integrity and authenticity."],
+  steps:["User logs in.","Server verifies the credentials.","Server issues an access token.","Client sends it in the Authorization header.","Server validates the token and authorizes the request."],
+  code:"Authorization: Bearer eyJhbGciOi...",
+  note:{w:1, t:"Important", x:"A signed JWT is not automatically encrypted. Never put passwords or confidential data in the payload."},
+  ln:["rfc7519","owJwt"] },
+{ n:12, t:"jwt", q:"How do you implement JWT authentication in Spring Security?",
+  en:"I add a login endpoint that validates credentials with **AuthenticationManager** and issues a signed **access token**. For each request, a **OncePerRequestFilter** (or the **OAuth2 Resource Server** support) validates the **signature, exp, iss and aud**, builds an **Authentication** and puts it in the **SecurityContextHolder**. The chain is configured as **STATELESS**.",
+  hi:"Login endpoint se token do, har request par filter token verify kare, aur SecurityContextHolder mein user set kare. Production mein khud parsing likhne se behtar hai OAuth2 Resource Server use karna.",
+  pts:["An authentication endpoint.","An AuthenticationManager or another way to validate credentials.","A token service to create and validate JWTs.","A custom OncePerRequestFilter, or the built-in OAuth2 resource-server setup.","A stateless SecurityFilterChain."],
+  code:"@Component\npublic class JwtAuthFilter extends OncePerRequestFilter {\n\n    private final JwtService jwtService;\n\n    public JwtAuthFilter(JwtService jwtService) {\n        this.jwtService = jwtService;\n    }\n\n    @Override\n    protected void doFilterInternal(\n            HttpServletRequest request,\n            HttpServletResponse response,\n            FilterChain chain)\n            throws ServletException, IOException {\n\n        String header = request.getHeader(\"Authorization\");\n\n        if (header != null && header.startsWith(\"Bearer \")) {\n            String token = header.substring(7);\n\n            // Validate signature, expiry, issuer, etc.\n            // If valid, create Authentication and set it\n            // in SecurityContextHolder.\n        }\n\n        chain.doFilter(request, response);\n    }\n}",
+  note:{w:1, t:"Dhyan do", x:"Ye sirf skeleton hai. Validation aur SecurityContextHolder setup skip kiya gaya hai, jo zaroori hai. Unverified token se role ya identity kabhi trust mat karo."},
+  ln:["oauthJwt","owJwt"] },
+{ n:13, fig:["q13"], t:"web", q:"What is CSRF?",
+  en:"**CSRF** (Cross-Site Request Forgery) is an attack where a malicious site makes the victim's browser send a **state-changing request** to a site where they are already logged in, because the browser attaches **cookies** automatically. Spring defends with a **CSRF token** (synchronizer token pattern) and **SameSite** cookies.",
+  hi:"Attacker tumhare browser se, tumhari hi login-session use karke, chupke se request bhej deta hai. Ye tab dangerous hai jab browser cookie apne aap bhejta hai.",
+  pts:["Most important when credentials go automatically, like session cookies."],
+  note:{t:"Interview question", x:"Kya REST API mein CSRF protection chahiye? Depends. Agar bearer token Authorization header mein explicitly jaata hai aur browser koi credential apne aap nahi bhejta, toh aksar CSRF band rakhte hain. Cookie-based auth mein zaroori ho sakta hai."},
+  ln:["csrf","owCsrf"] },
+{ n:14, t:"web", q:"How do you disable CSRF?",
+  en:"I disable it with **http.csrf(csrf -> csrf.disable())**, but only for **stateless APIs** that use a **Bearer token in the Authorization header** and no cookie-based authentication. If the app uses **session cookies**, CSRF protection must stay enabled.",
+  hi:"Code ek line ka hai, par decision sochkar lena hai. Sirf 'REST hai' bolkar disable mat karo.",
+  code:"http.csrf(csrf -> csrf.disable());",
+  note:{w:1, t:"Interview warning", x:"Do not disable CSRF just because it is a REST API. First check whether browsers send authentication automatically, especially cookies."},
+  ln:["csrf"] },
+{ n:15, t:"web", q:"What is CORS, and how is it different from CSRF?",
+  en:"**CORS** (Cross-Origin Resource Sharing) is a **browser-enforced** policy, controlled by headers like **Access-Control-Allow-Origin**, that decides which **origins** can call my API. **CSRF** is an attack that abuses an authenticated session, so the two are different. CORS does not replace **authentication**. In Spring I expose a **CorsConfigurationSource** and enable **http.cors()**.",
+  hi:"CORS = browser ka origin-control (kaun si website meri API call kar sakti hai). CSRF = ek attack jo logged-in user ke session ka misuse karta hai. CORS authentication ka replacement nahi hai.",
+  code:"@Bean\nCorsConfigurationSource corsConfigurationSource() {\n    CorsConfiguration config = new CorsConfiguration();\n\n    config.setAllowedOrigins(\n        List.of(\"https://myapp.example.com\"));\n    config.setAllowedMethods(\n        List.of(\"GET\", \"POST\", \"PUT\", \"DELETE\"));\n    config.setAllowedHeaders(List.of(\"Authorization\", \"Content-Type\"));\n\n    UrlBasedCorsConfigurationSource source =\n        new UrlBasedCorsConfigurationSource();\n\n    source.registerCorsConfiguration(\"/**\", config);\n    return source;\n}",
+  pts:["Turn it on in the security config with http.cors(...)."],
+  note:{w:1, t:"Important", x:"Credentials ke saath unrestricted origins production mein mat use karo. CORS authentication ya authorization ka replacement nahi hai."},
+  ln:["cors","mcors"] },
+{ n:16, t:"web", q:"How do you prevent brute-force attacks?",
+  en:"A **brute-force attack** tries many passwords against an account. I prevent it with **rate limiting** (per IP and per account), **temporary lockout** or **progressive delay**, **MFA / CAPTCHA**, generic error messages, and **monitoring and alerting**. I avoid permanent lockout because it enables **denial of service**.",
+  hi:"Attacker baar-baar password try karta hai. Bachav: rate limit, temporary lock, MFA/CAPTCHA, aur alerts. Permanent lockout mat rakho, nahi toh attacker kisi bhi user ko lock karwa dega.",
+  pts:["Rate limiting by account and IP address.","Temporary account lockout or progressive delays.","CAPTCHA when appropriate.","Multi-factor authentication.","Monitoring and alerts on suspicious login patterns."],
+  code:"if (failedAttempts >= MAX_ATTEMPTS) {\n    lockAccount(username);\n}",
+  note:{w:1, t:"Production mein", x:"Ye sirf illustration hai. Counters atomically update karo, expiry aur recovery policy rakho, aur permanent lockout avoid karo (denial of service ka risk)."},
+  ln:["owPwd"] },
+{ n:17, t:"role", q:"What is method-level security?",
+  en:"**Method-level security** applies authorization rules on methods with annotations like **@PreAuthorize**, **@PostAuthorize**, **@Secured** and **@RolesAllowed**, enabled with **@EnableMethodSecurity**. It supports **SpEL** expressions, so I can also check things like ownership of the resource.",
+  hi:"URL ke bajaye seedha method par rule lagana. @PreAuthorize method chalne se pehle check karta hai, @PostAuthorize baad mein.",
+  code:"@EnableMethodSecurity\n@Configuration\nclass MethodSecurityConfig {\n}\n\n@PreAuthorize(\"hasRole('ADMIN')\")\npublic void approvePayment(Long paymentId) {\n    // Business logic\n}",
+  pts:["@PreAuthorize: checks access before the method runs.","@PostAuthorize: checks the returned result after the method runs.","@Secured: role-based restriction.","@RolesAllowed: role-based restriction in JSR-250 style."],
+  note:{w:1, t:"Important", x:"@PostAuthorize returned object check ke liye hai. Unauthorized side effects rokne ke liye use mat karo, kyunki method pehle hi chal chuka hota hai."},
+  ln:["method"] },
+{ n:18, t:"role", q:"What is the difference between 401 and 403?",
+  en:"**401 Unauthorized** means **authentication failed or is missing** (no token, or invalid or expired). **403 Forbidden** means the user is **authenticated but not authorized** for that resource. In Spring, 401 comes from the **AuthenticationEntryPoint** and 403 from the **AccessDeniedHandler**.",
+  hi:"401 = tum login hi nahi ho ya token galat hai. 403 = tum login ho, par is kaam ki permission nahi hai. Naam ke bawajood 401 asal mein authentication ke baare mein hai.",
+  table:{ head:["HTTP status","Meaning","Example"], rows:[["401 Unauthorized","Authentication is missing or invalid","Missing or expired access token"],["403 Forbidden","Request understood, access denied","Authenticated user lacks ADMIN role"]] },
+  ln:["m401","m403"] },
+{ n:19, t:"core", q:"What is SecurityContextHolder?",
+  en:"**SecurityContextHolder** holds the **SecurityContext**, which contains the current **Authentication** (principal, credentials, authorities). By default it uses a **ThreadLocal** strategy, so the context must be propagated explicitly to **async threads**.",
+  hi:"Yahan current logged-in user ka Authentication object rakha jaata hai. Normally ye thread se juda hota hai, isliye async tasks mein context pass karte waqt dhyan rakho.",
+  code:"Authentication auth =\n    SecurityContextHolder.getContext().getAuthentication();\n\nString username = auth.getName();",
+  note:{w:1, t:"Dhyan do", x:"Traditional servlet apps mein context aam taur par current thread se associated hota hai. Async tasks mein propagate karna padta hai."},
+  ln:["authArch"] },
+{ n:20, fig:["q20"], t:"jwt", q:"What is the difference between session-based authentication and JWT?",
+  en:"In **session-based** auth the server keeps **server-side state** and the client sends a **session ID cookie** (JSESSIONID). In **JWT-based** auth the server is **stateless** and the client sends a **self-contained signed token**. JWT is easy to scale but needs extra design for **revocation**, **refresh tokens** and **key rotation**.",
+  hi:"Session mein server state yaad rakhta hai. JWT mein token khud claims leke chalta hai. Par JWT expire hone tak chalta rehta hai jab tak tum revoke ka system na banao.",
+  table:{ head:["Session-based","JWT-based"], rows:[["Server maintains session state","Access token can be validated without a per-token session lookup"],["Session ID commonly stored in a cookie","Token often sent in a Bearer header"],["Logout can invalidate the server session","A valid JWT stays usable until expiry unless revocation exists"],["Session storage may be shared across instances","Validation keys and policies must be shared consistently"]] },
+  note:{w:1, t:"Important", x:"JWT apne aap mein zyada secure ya zyada scalable nahi hai. Revocation, refresh tokens, storage, expiry aur key rotation phir bhi matter karte hain."},
+  ln:["owJwt"] },
+{ n:21, t:"jwt", q:"What is stateless authentication?",
+  en:"**Stateless authentication** means the server creates **no HTTP session** and stores no per-user state. Every request carries its own credential, usually a **Bearer JWT**, which is verified each time. In Spring this is **SessionCreationPolicy.STATELESS**.",
+  hi:"Server koi session store nahi karta. Har request apna Bearer token leke aati hai aur server usse verify karta hai. JWT-secured REST APIs mein ye common hai.",
+  code:"http.sessionManagement(session ->\n    session.sessionCreationPolicy(\n        SessionCreationPolicy.STATELESS));",
+  ln:["oauthJwt"] },
+{ n:22, t:"jwt", q:"What are access tokens and refresh tokens?",
+  en:"An **access token** is a **short-lived** credential sent with each API call. A **refresh token** is **long-lived** and is used only at the refresh endpoint to get a new access token. Best practice: **short expiry, rotation, reuse detection, server-side storage and revocation**.",
+  hi:"Access token chhota sa hota hai (5 se 15 min) aur har API call mein jaata hai. Refresh token lamba chalta hai aur sirf naya access token lene ke kaam aata hai.",
+  pts:["Keep access-token lifetimes short.","Use refresh-token rotation and reuse detection.","Store refresh tokens securely.","Revoke on logout or compromise.","Never accept a refresh token as an ordinary API access token."],
+  note:{t:"Yaad rakho", x:"Refresh token ko alag se validate karo aur sirf refresh endpoint par accept karo."},
+  ln:["owJwt"] },
+{ n:23, t:"role", q:"What is the difference between hasRole() and hasAuthority()?",
+  en:"**hasRole('ADMIN')** checks for the authority **ROLE_ADMIN**, because Spring adds the **ROLE_** prefix. **hasAuthority('USER_READ')** checks the **exact string**. I use **roles** for coarse groups and **authorities** (permissions) for fine-grained access.",
+  hi:"hasRole andar se ROLE_ prefix jodta hai. hasAuthority exact string match karta hai. Role bade groups ke liye, authority chhoti permissions ke liye.",
+  code:"@PreAuthorize(\"hasRole('ADMIN')\")        // checks ROLE_ADMIN\n@PreAuthorize(\"hasAuthority('USER_READ')\") // checks exact USER_READ",
+  ln:["method"] },
+{ n:24, t:"role", q:"How do you handle security exceptions?",
+  en:"I handle them with **AuthenticationEntryPoint** (unauthenticated, returns **401**) and **AccessDeniedHandler** (authenticated but not allowed, returns **403**), configured through **http.exceptionHandling()**. I return a consistent **JSON error body** and do not leak internal details.",
+  hi:"Login nahi hai toh AuthenticationEntryPoint (401). Login hai par permission nahi toh AccessDeniedHandler (403).",
+  code:"http.exceptionHandling(ex -> ex\n    .authenticationEntryPoint((request, response, exception) ->\n        response.sendError(401))\n    .accessDeniedHandler((request, response, exception) ->\n        response.sendError(403))\n);",
+  note:{t:"Production mein", x:"Consistent error format return karo, internal details leak mat karo, aur security events ko sahi tarah log karo."},
+  ln:["servlet"] },
+{ n:25, fig:["q25"], t:"core", q:"What is the Spring Security filter chain?",
+  en:"The **filter chain** is an ordered set of **servlet filters** (SecurityContext, authentication, CSRF, **ExceptionTranslationFilter**, **AuthorizationFilter**) that every request passes through **before the DispatcherServlet and controller**. Spring plugs it in through **DelegatingFilterProxy** and **FilterChainProxy**.",
+  hi:"Request controller tak pahunchne se pehle in filters se guzarti hai. Koi filter fail ho jaye toh request controller tak jaati hi nahi.",
+  flow:["HTTP Request","Spring Security Filters","Authentication + Authorization","DispatcherServlet","Controller"],
+  pts:["Exact filters and their order depend on the authentication mechanism you configure.","A request can be rejected before the controller is invoked."],
+  ln:["servlet"] },
+{ n:26, t:"jwt", q:"What is OAuth 2.0, and how is it different from JWT?",
+  en:"**OAuth 2.0** is an **authorization framework** that defines how a client obtains and uses **access tokens** from an **authorization server**. **JWT** is only a **token format**, and OAuth access tokens can be JWTs or **opaque** tokens. My API acts as an **OAuth2 Resource Server** and validates tokens from the issuer.",
+  hi:"OAuth 2.0 batata hai token kaise milega aur kaise use hoga. JWT sirf token ka format hai. Dono ek cheez nahi hain.",
+  code:"http.oauth2ResourceServer(oauth2 ->\n    oauth2.jwt(Customizer.withDefaults()));",
+  note:{t:"Yaad rakho", x:"Ye issuer/JWK ya decoder configuration maangta hai. API ko token trust configuration ke hisaab se validate karna chahiye."},
+  ln:["rfc6749","oauthJwt"] },
+{ n:27, fig:["bcrypt","regflow"], t:"auth", q:"What is password encoding, and why not use MD5 or SHA-256 directly?",
+  en:"Passwords need a **slow, salted, adaptive** hash such as **BCrypt, Argon2 or PBKDF2**. **MD5 and plain SHA-256** are fast general-purpose hashes, so attackers can test billions of guesses per second using **GPUs and rainbow tables**.",
+  hi:"Fast hash ka matlab attacker ek second mein lakhon guess try kar sakta hai. Slow aur salted hash us speed ko maar deta hai.",
+  table:{ head:["","MD5 / SHA-256","BCrypt"], rows:[["Speed","Very fast","Deliberately slow"],["Salt","None built in","Built in, random per password"],["Same password, same hash?","Yes","No"],["Rainbow table","Works","Useless"],["Fine for passwords?","No","Yes"]] },
+  deep:[
+   ["Problem kya hai?","Maan lo database leak ho gaya. Agar passwords plain text mein hain, toh attacker ko sab mil gaye, aur log wahi password dusri sites par bhi use karte hain. Isliye hum password ka hash store karte hain, par hash kaisa hai ye bahut matter karta hai."],
+   ["Hash kya hota hai?","Hash ek one-way machine hai. Password andar daalo, ek fixed string bahar aati hai, par us string se original password wapas nahi nikalta. Login par user ka typed password dobara hash karte hain aur stored hash se match karte hain. Same input hamesha same hash deta hai."],
+   ["MD5 / SHA-256 mein dikkat 1: bahut tez hain","Ye files check karne jaise kaamon ke liye bane the, isliye tez hone ke liye design hue. Ek modern GPU second mein billions hashes nikaal sakta hai. Attacker common passwords ki list (123456, password, qwerty) ka hash nikaal ke chori hui database se match karta hai. Hash tez hai toh ye kaam bahut jaldi ho jaata hai (brute-force / dictionary attack)."],
+   ["MD5 / SHA-256 mein dikkat 2: salt nahi","Same password ka same hash aata hai, toh attacker pehle se ek badi lookup table bana leta hai (rainbow table). Aur agar 1000 users ka password 123456 hai, toh database mein 1000 jagah same hash dikhega. Ek crack hua toh sab crack."],
+   ["BCrypt kya add karta hai? 1. Salt","Har password ke saath ek random string jodkar hash karte hain. User A aur user B ka password same ho tab bhi hash alag aate hain. Isse rainbow table bekaar ho jaati hai aur attacker ko har user ke liye alag se guess karna padta hai. Salt chhupana nahi padta, BCrypt use hash ke andar hi store kar deta hai."],
+   ["BCrypt kya add karta hai? 2. Slow (adaptive)","BCrypt hash ko kai rounds tak repeat karta hai. Cost factor se tum control karte ho ki kitna slow ho (Spring ka default 10, yaani 2^10 = 1024 rounds). Real user ko login par kuch milliseconds ka fark padta hai, par attacker ko billions guess karne hain, toh wahi delay saalon ka kaam ban jaata hai. Computers tez hote jaate hain, toh cost factor badha ke dobara slow kar sakte ho. Isi ko adaptive kehte hain."],
+   ["BCrypt ka output kaisa dikhta hai","Format: $2a$10$ + 22 character salt + hash. Yahan $2a$ BCrypt ka version hai, 10 cost factor hai, uske baad pehle 22 characters salt hain, aur baaki asli hash. Salt isi string ke andar hai, isliye matches() ko alag se salt nahi chahiye, wo stored string se khud nikaal leta hai."],
+   ["Spring mein flow","Register par encode(rawPassword) chalao aur result DB mein save karo. Login par Spring khud matches(rawPassword, storedHash) chalata hai: stored hash se salt aur cost nikaalta hai, raw password ko usi tarah hash karta hai, aur compare karta hai. encode() ko do baar chalao toh har baar alag output aata hai (salt random hai), isliye compare hamesha matches() se karo, equals() se kabhi nahi."]
+  ],
+  pts:["Good: BCrypt, Argon2, PBKDF2.","Bad for passwords: MD5, plain SHA-256."],
+  ln:["pwd","owPwd"] },
+{ n:28, t:"prod", q:"Refresh token chori ho gaya, ab kya karoge?",
+  en:"I **revoke the token family**, use **refresh-token rotation with reuse detection**, force **re-authentication**, and **investigate** the audit logs. Refresh tokens are stored server-side as hashes, so revocation takes effect immediately.",
+  hi:"Chori hua token family revoke karo, reuse detection chalu rakho, user ko dobara login karwao, aur logs dekh kar investigate karo.",
+  pts:["Revoke the refresh token: mark it invalid in the server-side store.","Rotation: issue a new refresh token every time the old one is used.","Reuse detection: an already-used token showing up again means possible theft, so revoke the family.","Revoke other active sessions if there is evidence of compromise.","Investigate audit logs, timestamps, devices and odd requests.","Re-authenticate the user and consider extra verification."],
+  steps:["Attacker steals refresh token R1.","R1 is used to request a new access token.","Server rotates R1 to R2 and invalidates R1.","R1 is used again: reuse detected.","Revoke the token family, investigate, require re-login."],
+  note:{t:"Follow-up", x:"Agar access token chori ho, toh attacker expiry tak use kar sakta hai. Isliye short lifetime, zarurat par denylist, aur strong session controls."},
+  ln:["owJwt"] },
+{ n:29, fig:["q29"], t:"prod", q:"What is refresh-token rotation, and how does reuse detection work?",
+  en:"**Rotation** means every refresh returns a **new refresh token** and **invalidates the old one**. **Reuse detection**: if an old token is presented again, it signals **theft**, so the server revokes the whole **token family**. Rotation must be **atomic**.",
+  hi:"Har refresh par naya token milta hai aur purana invalid. Agar purana dobara aaya, matlab chori ka shak, poori family revoke kar do.",
+  flow:["Login: R1","Refresh with R1: R2, R1 dead","Refresh with R2: R3, R2 dead","R1 shows up again","Revoke family"],
+  pts:["Store token records or hashes server-side so revocation and reuse detection work.","Rotate atomically so two concurrent requests cannot both use the same token.","Use unpredictable tokens bound to the right user or session.","Return generic errors so the API does not leak details."],
+  note:{w:1, t:"Important", x:"JWT refresh token apne aap revocable nahi hota. Revocation ke liye server-side mechanism ya koi explicit validation strategy chahiye."},
+  ln:["owJwt"] },
+{ n:30, t:"prod", q:"Access token chori ho gaya, toh kya karoge?",
+  en:"A stolen **access token** works until **expiry**, so I keep it **short-lived (5 to 15 minutes)**, use **HTTPS**, and apply a **denylist / revocation** or **session invalidation** if I need an immediate cut-off. Deleting it on the client does nothing about a copied token.",
+  hi:"Client se token delete karna kaafi nahi hai, kyunki chori hui copy chalti rehti hai. Server ko khud us token ko reject karna padega: expiry, revocation ya validation se.",
+  pts:["Keep expiry short, for example 5 to 15 minutes.","Use HTTPS everywhere.","Avoid insecure token storage.","Revoke the session or token family if compromise is suspected.","Investigate suspicious API activity."],
+  note:{t:"Follow-up", x:"Why not just delete the JWT from the client? Because deleting it from the real user's browser does not invalidate a copy the attacker already has."},
+  ln:["owJwt"] },
+{ n:31, t:"prod", q:"User logout karta hai, toh JWT kaise invalidate karoge?",
+  en:"A JWT is **self-contained**, so deleting it on the client is not enough. On logout I **revoke the refresh token or server session**, keep **access tokens short-lived**, and add an access-token **denylist (jti)** if immediate invalidation is needed.",
+  hi:"Logout par refresh token ya session revoke karo, access token chhota rakho, aur turant band karna ho toh denylist use karo.",
+  code:"public void logout(String refreshToken) {\n    refreshTokenService.revoke(refreshToken);\n}",
+  note:{t:"Interview point", x:"Stateless auth se validation aasan hota hai, par immediate revocation ke liye extra design chahiye. Illustration mein service ko token validate karna aur sahi record revoke karna chahiye."},
+  ln:["owJwt"] },
+{ n:32, t:"prod", q:"Refresh token ko database mein kaise store karoge?",
+  en:"I store only a **hash of a high-entropy opaque refresh token**, along with **user_id, family_id, expires_at, revoked_at and replaced_by**. On refresh I hash the incoming token, look it up, check expiry and revocation, and **rotate atomically**.",
+  hi:"Raw token kabhi DB mein mat rakho, sirf uska hash. Refresh request aaye toh presented token ko hash karo, record dhundo, expiry aur revocation check karo, phir atomically rotate karo.",
+  table:{ head:["Column","Purpose"], rows:[["token_hash","Identify the token securely"],["user_id","Token owner"],["family_id","Group rotated tokens"],["expires_at","Expiration"],["revoked_at","Revocation timestamp"],["replaced_by","Rotation tracking"]] },
+  ln:["owJwt","owPwd"] },
+{ n:33, t:"prod", q:"Ek user multiple devices par login hai. Ek device se logout karne par kya hoga?",
+  en:"I keep a **separate session or refresh-token family per device**. Logout revokes only that **device session**. **Logout from all devices** (global revocation) is used only on user request or a security incident.",
+  hi:"Har device ka apna session. Mobile se logout karo toh sirf mobile wala band hoga, laptop chalta rahega. Jab tak user 'logout from all devices' na chune ya security incident na ho.",
+  pts:["Mobile: Session A. Laptop: Session B.","Logout on mobile: revoke Session A.","Session B stays active unless the user chooses global logout or a security incident needs it."],
+  ln:["owJwt"] },
+{ n:34, t:"jwt", q:"JWT expire ho gaya toh kya karoge?",
+  en:"The API rejects it with **401**. The client calls the refresh endpoint with a valid **refresh token**, the server **validates and rotates** it, and the client **retries the original request once**. If refresh fails, the user must **log in again**.",
+  hi:"API 401 deti hai, client refresh token se naya access token leta hai, aur original request ek baar retry karta hai. Refresh bhi fail ho toh login page.",
+  steps:["API returns 401 for the expired access token.","Client tries refresh if the refresh token is valid.","Server validates and rotates the refresh token.","Client retries the original request once with the new access token.","If refresh fails, clear the session and redirect to login."],
+  note:{w:1, t:"Dhyan do", x:"401 par infinite retry loop mat banao."},
+  ln:["owJwt"] },
+{ n:35, t:"jwt", q:"JWT ki signature kaise validate karoge?",
+  en:"I verify the **signature** with the trusted key (**JWK / public key**) and an **explicitly allowed algorithm** (never trust the header's alg, never accept 'none'). Then I validate **exp, iss, aud** and required claims. Decoding alone is **not** validation.",
+  hi:"Sirf decode karna trust nahi hai. Decode karne se bas claims padhe jaate hain, token asli hai ya nahi ye signature aur claims verify karne se pata chalta hai.",
+  pts:["Signature is valid.","Algorithm matches the configured policy.","exp: token has not expired.","iss: trusted issuer.","aud: intended recipient.","Required claims and authorities are valid."],
+  note:{t:"Follow-up", x:"Can we trust the JWT payload just by decoding it? No. Verify the signature and claims before using the token for authorization."},
+  ln:["rfc7519","oauthJwt","owJwt"] },
+{ n:36, t:"prod", q:"User ka role ADMIN se USER ho gaya, lekin purane JWT mein ADMIN role hai. Kya karoge?",
+  en:"The JWT keeps the **old role claim** until it expires. I use **short-lived tokens**, check **current permissions on the server** for sensitive operations, or keep a **token / session version** and **revoke sessions** when permissions change.",
+  hi:"Database mein role badalne se purana token apne aap update nahi hota. Purane token mein purana role hi rahega.",
+  pts:["Short-lived access tokens.","Server-side permission lookup for sensitive operations.","Session or token version checks.","Revoke active sessions when permissions change."],
+  note:{w:1, t:"Important", x:"Never assume a role change in the database changes the claims of an already-issued JWT."},
+  ln:["owJwt"] },
+{ n:37, t:"prod", q:"JWT ko localStorage mein store karna safe hai?",
+  en:"**localStorage** is readable by JavaScript, so any **XSS** can steal the token. A common choice is **HttpOnly + Secure + SameSite cookies**, combined with **CSRF protection** and a strict **Content Security Policy**. The right choice depends on the **threat model**.",
+  hi:"JavaScript localStorage padh sakta hai, toh XSS se token chori ho sakta hai. HttpOnly + Secure + SameSite cookie behtar option hai, par tab CSRF ka dhyan rakhna padega.",
+  pts:["Consider HttpOnly, Secure, SameSite cookies for session or refresh credentials.","Protect against CSRF when using cookies.","Apply strong XSS prevention, input/output handling and Content Security Policy.","Avoid exposing refresh tokens to unnecessary client-side code."],
+  note:{t:"Yaad rakho", x:"Koi bhi browser storage risk-free nahi hai. Design mein XSS aur CSRF dono sochne padte hain."},
+  ln:["owCsrf","owJwt"] },
+{ n:38, t:"web", q:"API par brute-force attack ho raha hai. Kaise protect karoge?",
+  en:"I apply **rate limiting** (per IP and per account, with a shared store like **Redis** across instances), **progressive delays or temporary lockout**, **MFA / CAPTCHA**, **generic error messages** and **alerting**.",
+  hi:"Multiple servers hon toh rate limit ka counter Redis jaisi shared jagah rakho. Login error generic rakho aur permanent lockout avoid karo.",
+  pts:["Rate-limit by account and IP, with safeguards against distributed attacks.","Use a shared store such as Redis when limits must work across instances.","Return generic login errors.","Send alerts for suspicious patterns.","Avoid permanent lockouts that let attackers deny service to real users."],
+  ln:["owPwd"] },
+{ n:39, fig:["q39"], t:"role", q:"Ek API ko sirf specific users access kar sakte hain. Kaise implement karoge?",
+  en:"I enforce **authorization on the server** with **roles / authorities** plus an **object-level ownership check** on every resource. Without it the API is vulnerable to **BOLA / IDOR** (Broken Object Level Authorization).",
+  hi:"User A, user B ka data na dekh paye. Sirf role check kaafi nahi, har record ke liye 'ye isi user ka hai?' bhi check karo. Is bug ko BOLA ya IDOR kehte hain.",
+  code:"@PreAuthorize(\"hasAuthority('ORDER_READ')\")\n@GetMapping(\"/orders/{id}\")\npublic Order getOrder(@PathVariable Long id) {\n    return orderService.getOrderForCurrentUser(id);\n}",
+  note:{w:1, t:"Important", x:"Service ko bhi verify karna chahiye ki current user ko is specific order ka access hai. Sirf ORDER_READ hona sabke private data ka access nahi deta. Isse BOLA/IDOR rukta hai."},
+  ln:["owBola"] },
+{ n:40, t:"prod", q:"What happens if two requests use the same refresh token simultaneously?",
+  en:"I make rotation **atomic** using a **database transaction with a conditional update** (compare-and-set), so only **one** request can consume the token. Otherwise both requests create valid branches and **reuse detection** breaks (a **race condition**).",
+  hi:"Do requests ek saath same token validate kar lein toh dono ko naya token mil jayega aur reuse detection kamzor ho jayegi. Isliye DB transaction ya conditional update use karo.",
+  pts:["Use a database transaction and a conditional update.","Enforce a unique token identifier or token state.","Handle duplicate refresh requests safely.","Design the reuse-detection policy carefully."],
+  note:{t:"SDE-2 follow-up", x:"Concurrency control ke bina dono requests token validate karke alag valid refresh-token branches bana sakti hain."},
+  ln:["owJwt"] },
+{ n:41, t:"jwt", q:"What is the difference between token revocation and token expiration?",
+  en:"**Expiration** is automatic invalidation at the token's **exp** time. **Revocation** is **explicitly invalidating** a token or session before expiry, for example on logout, password change or detected reuse.",
+  hi:"Expiration apne aap time par hoti hai. Revocation tum jaan-boojhkar expiry se pehle karte ho, jaise logout, chori ya password change par.",
+  note:{t:"Example", x:"Refresh token 7 din mein expire hota hai, par logout, password compromise ya suspicious reuse par turant revoke ho sakta hai."},
+  ln:["owJwt"] },
+{ n:42, t:"prod", q:"How would you secure a payment or admin API?",
+  en:"I use **least-privilege authorization**, **server-side validation** of resource ownership and amounts, **HTTPS**, **rate limiting**, **audit logging**, **step-up authentication**, **idempotency keys** to prevent duplicate payments, and protection against **replay and tampering**.",
+  hi:"Payment API mein duplicate payment, galat amount aur doosre user ka data sabse bade risks hain. Isliye idempotency key, server-side amount aur ownership validation zaroori hain.",
+  pts:["Re-authentication or step-up authentication for high-risk operations.","Idempotency keys to avoid duplicate payments.","Server-side amount and ownership validation.","Protection against replay and request tampering.","Secure secret and signing-key management.","Audit logs that exclude credentials and sensitive data."],
+  ln:["owBola"] }
+];
+
+var PRACTICE = [
+ ["Refresh token stolen","Revoke the token family, enable rotation with reuse detection, force re-login, investigate."],
+ ["Access token stolen","Short expiry, server-side revocation if needed, secure storage and investigation."],
+ ["Logout with JWT","Revoke refresh/session credentials. Use short access-token expiry or a denylist."],
+ ["Role changed after JWT issued","Old claims may persist. Use short expiry and server-side authorization or version checks where required."],
+ ["Same refresh token used twice","Rotation must be atomic. Treat reuse as possible theft and revoke the token family."],
+ ["JWT payload decoded","Decoding is not trust. Always verify signature, algorithm, exp, iss and aud."],
+ ["Cookie-based authentication","Use HttpOnly, Secure, SameSite cookies and keep CSRF protection enabled."],
+ ["User can access another user's record","Add resource-ownership checks on the server to prevent BOLA/IDOR."]
+];
+
+var CHECK = ["Authentication vs authorization","UserDetailsService and AuthenticationProvider","SecurityFilterChain and authorization rules","BCryptPasswordEncoder","JWT structure and validation","Access tokens vs refresh tokens","CSRF vs CORS","401 vs 403","Role vs authority","Session vs stateless authentication","SecurityContextHolder","Method-level security","Brute-force protection","OAuth 2.0 Resource Server","Security exceptions and filter chain"];
+
+var LINKROWS = [
+ ["core","Spring Security reference (home)","1-3, 25",["home"]],
+ ["core","Servlet architecture and filter chain","7, 24, 25",["servlet"]],
+ ["auth","Authentication architecture","5, 9, 19",["authArch"]],
+ ["auth","Password storage and PasswordEncoder","6, 27",["pwd","owPwd"]],
+ ["role","Method security (@PreAuthorize)","8, 17, 23",["method"]],
+ ["role","401 vs 403","4, 18",["m401","m403"]],
+ ["role","BOLA / IDOR","39, 42",["owBola"]],
+ ["jwt","OAuth2 Resource Server (JWT)","12, 21, 26, 35",["oauthJwt"]],
+ ["jwt","JWT standard","11, 35",["rfc7519"]],
+ ["jwt","OAuth 2.0 standard","26",["rfc6749"]],
+ ["jwt","JWT security best practices","28-36, 41",["owJwt"]],
+ ["web","CSRF","13, 14, 37",["csrf","owCsrf"]],
+ ["web","CORS","15",["cors","mcors"]]
+];
+
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function rich(text) {
+  var p = el("p");
+  text.split("**").forEach(function (part, i) { if (!part) return; if (i % 2) p.appendChild(el("strong", null, part)); else p.appendChild(document.createTextNode(part)); });
+  return p;
+}
+function pad(n) { return "Q" + n; }
+
+
+/* diagrams */
+function bx(x, y, w, h, cls, lines, tc) {
+  var cx = x + w / 2, lh = 15, y0 = y + h / 2 - (lines.length - 1) * lh / 2 + 4.5;
+  var o = '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="8"/>';
+  lines.forEach(function (t, i) { o += '<text x="' + cx + '" y="' + (y0 + i * lh) + '" text-anchor="middle"' + (tc ? ' class="' + tc + '"' : '') + '>' + t + '</text>'; });
+  return o;
+}
+function ar(x1, y1, x2, y2, k) {
+  var c = k === "r" ? "redln" : k === "g" ? "grnln" : "ln", m = k === "r" ? "ahr" : k === "g" ? "ahg" : "ah";
+  return '<line class="' + c + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" marker-end="url(#' + m + ')"/>';
+}
+function tx(x, y, t, anchor, cls) { return '<text x="' + x + '" y="' + y + '" text-anchor="' + anchor + '"' + (cls ? ' class="' + cls + '"' : '') + '>' + t + '</text>'; }
+function sv(w, h, cap, inner) { return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + cap + '">' + inner + '</svg>'; }
+function sw(x, y, cls) { return '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="14" height="14" rx="3"/>'; }
+
+var FIGS = {};
+(function () {
+  var c;
+  c = "Har request pehle security filters se guzarti hai. Login nahi to 401, permission nahi to 403, aur controller tak request tabhi pahunchti hai jab dono checks pass ho.";
+  FIGS.q25 = { cap: c, svg: sv(640, 190, c,
+    tx(320, 40, "Controller tak request tabhi pahunchti hai jab dono checks pass ho", "middle", "sm") +
+    bx(8, 62, 96, 44, "plain", ["HTTP request"]) + ar(104, 84, 132, 84) +
+    bx(132, 62, 150, 44, "box", ["Security filters", "auth, CSRF, session"]) + ar(282, 84, 310, 84) +
+    bx(310, 62, 140, 44, "box", ["AuthorizationFilter", "role / authority"]) + ar(450, 84, 478, 84) +
+    bx(478, 62, 154, 44, "plain", ["DispatcherServlet", "then Controller"]) +
+    ar(207, 106, 207, 140, "r") + bx(142, 140, 130, 34, "redbox", ["401 Unauthorized"], "red") + tx(215, 126, "not logged in", "start", "sm") +
+    ar(380, 106, 380, 140, "r") + bx(315, 140, 130, 34, "redbox", ["403 Forbidden"], "red") + tx(388, 126, "no permission", "start", "sm")) };
+
+  c = "AuthenticationManager kaam AuthenticationProvider ko deta hai. Provider UserDetailsService se user mangta hai aur PasswordEncoder se password match karta hai.";
+  FIGS.q9 = { cap: c, svg: sv(640, 200, c,
+    tx(412, 22, "DaoAuthenticationProvider (common)", "middle", "sm") +
+    bx(8, 30, 96, 40, "plain", ["Login request"]) + ar(104, 50, 132, 50) +
+    bx(132, 30, 164, 40, "plain", ["AuthenticationManager"]) + ar(296, 50, 324, 50) +
+    bx(324, 30, 176, 40, "box", ["AuthenticationProvider"]) + ar(500, 50, 528, 50) +
+    bx(528, 30, 104, 40, "grnbox", ["Authenticated", "or failure"], "grn") +
+    ar(390, 70, 330, 130) + ar(450, 70, 470, 130) +
+    bx(250, 130, 140, 40, "plain", ["UserDetailsService"]) + bx(410, 130, 130, 40, "plain", ["PasswordEncoder"]) +
+    tx(320, 188, "loads user from DB", "middle", "sm") + tx(475, 188, "matches(raw, hash)", "middle", "sm")) };
+
+  c = "JWT ke teen hisse hote hain. Signature se server verify karta hai ki token asli hai, par payload koi bhi decode karke padh sakta hai.";
+  FIGS.q11 = { cap: c, svg: sv(640, 205, c,
+    bx(8, 30, 190, 44, "k-role", ["Header"], "b") + tx(210, 62, ".", "middle", "dot") +
+    bx(222, 30, 210, 44, "k-jwt", ["Payload"], "b") + tx(444, 62, ".", "middle", "dot") +
+    bx(456, 30, 176, 44, "k-web", ["Signature"], "b") +
+    tx(103, 98, "alg: HS256 or RS256", "middle", "sm") + tx(103, 114, "typ: JWT", "middle", "sm") +
+    tx(327, 98, "sub, exp, iss, aud", "middle", "sm") + tx(327, 114, "roles and other claims", "middle", "sm") +
+    tx(544, 98, "sign(header + payload,", "middle", "sm") + tx(544, 114, "secret or private key)", "middle", "sm") +
+    bx(8, 150, 624, 40, "redbox", ["Payload sirf encoded hai, encrypted nahi. Password mat daalo."], "red")) };
+
+  c = "BCrypt ki string mein version, cost factor, salt aur hash sab ek hi jagah hote hain.";
+  FIGS.bcrypt = { cap: c, svg: sv(640, 200, c,
+    bx(8, 24, 58, 38, "k-core", ["$2a$"], "mono") + bx(70, 24, 44, 38, "k-jwt", ["10"], "mono") + bx(118, 24, 28, 38, "plain", ["$"], "mono") +
+    bx(150, 24, 184, 38, "k-auth", ["N9qo8uLOickgx2ZMRZoMye"], "mono") + bx(338, 24, 294, 38, "k-prod", ["hash (31 characters)"]) +
+    sw(8, 88, "k-core") + tx(30, 100, "$2a$ = BCrypt version", "start") +
+    sw(8, 114, "k-jwt") + tx(30, 126, "10 = cost factor, so 2^10 = 1024 rounds of hashing (slow on purpose)", "start") +
+    sw(8, 140, "k-auth") + tx(30, 152, "22 characters = random salt, different for every password, stored inside the string", "start") +
+    sw(8, 166, "k-prod") + tx(30, 178, "31 characters = the actual hash", "start")) };
+
+  c = "Register par encode() hash banata hai aur DB mein save hota hai. Login par matches() stored hash se salt aur cost nikaal kar typed password ko dobara hash karta hai.";
+  FIGS.regflow = { cap: c, svg: sv(640, 224, c,
+    tx(8, 18, "Register", "start", "b") +
+    bx(8, 26, 110, 40, "plain", ["raw password"]) + ar(118, 46, 146, 46) +
+    bx(146, 26, 176, 40, "box", ["encode() + random salt"]) + ar(322, 46, 350, 46) +
+    bx(350, 26, 120, 40, "plain", ["hash string"]) + ar(470, 46, 498, 46) +
+    bx(498, 26, 134, 40, "plain", ["users table (DB)"]) +
+    tx(8, 100, "Login", "start", "b") +
+    bx(8, 108, 110, 40, "plain", ["typed password"]) + ar(118, 128, 146, 128) +
+    bx(146, 108, 140, 40, "box", ["matches(raw, hash)"]) + ar(286, 128, 314, 128) +
+    bx(314, 108, 210, 40, "plain", ["re-hash with stored salt", "and cost"]) + ar(524, 128, 552, 128) +
+    bx(552, 108, 80, 40, "grnbox", ["true or", "false"], "grn") +
+    bx(146, 176, 140, 36, "plain", ["stored hash from DB"]) + ar(216, 176, 216, 150)) };
+
+  c = "Har refresh par purana token dead ho jaata hai. Agar chori hua R1 wapas aaye, to server poori token family revoke kar deta hai.";
+  FIGS.q29 = { cap: c, svg: sv(640, 215, c,
+    tx(8, 18, "Asli user ka chain", "start", "b") +
+    bx(8, 28, 96, 40, "plain", ["R1 (login)"]) + ar(104, 48, 180, 48) + tx(142, 40, "refresh", "middle", "sm") +
+    bx(180, 28, 96, 40, "plain", ["R2"]) + ar(276, 48, 352, 48) + tx(314, 40, "refresh", "middle", "sm") +
+    bx(352, 28, 96, 40, "grnbox", ["R3 (current)"], "grn") +
+    tx(56, 88, "dead after use", "middle", "sm red") + tx(228, 88, "dead after use", "middle", "sm red") + tx(400, 88, "valid until next refresh", "middle", "sm grn") +
+    '<line class="redln dash" x1="56" y1="98" x2="56" y2="158" marker-end="url(#ahr)"/>' + tx(66, 134, "stolen copy of R1", "start", "sm red") +
+    bx(8, 160, 170, 40, "plain", ["Attacker sends R1"]) + ar(178, 180, 206, 180, "r") +
+    bx(206, 160, 180, 40, "plain", ["R1 was already used"]) + ar(386, 180, 414, 180, "r") +
+    bx(414, 160, 218, 40, "redbox", ["Revoke family, force login"], "red")) };
+
+  c = "Attacker ki site victim ke browser se API ko request bhejwati hai, aur browser cookie apne aap laga deta hai. CSRF token aur SameSite cookie isse rokte hain.";
+  FIGS.q13 = { cap: c, svg: sv(640, 292, c,
+    bx(20, 8, 120, 30, "redbox", ["Evil site"], "red") + bx(255, 8, 130, 30, "plain", ["Victim browser"]) + bx(490, 8, 120, 30, "box", ["Your API"]) +
+    '<line class="life" x1="80" y1="38" x2="80" y2="232"/><line class="life" x1="320" y1="38" x2="320" y2="232"/><line class="life" x1="550" y1="38" x2="550" y2="232"/>' +
+    ar(320, 80, 550, 80) + tx(435, 72, "1. login, API sets session cookie", "middle", "sm") +
+    ar(320, 115, 80, 115) + tx(200, 107, "2. victim opens evil page", "middle", "sm") +
+    ar(80, 150, 320, 150) + tx(200, 142, "3. hidden form auto-submits", "middle", "sm") +
+    ar(320, 190, 550, 190, "r") + tx(435, 182, "4. POST /transfer + cookie", "middle", "sm red") +
+    tx(435, 212, "API sees a valid cookie and runs it", "middle", "sm red") +
+    bx(8, 246, 624, 34, "grnbox", ["Defence: CSRF token, SameSite cookie, no cookie auth for APIs"], "grn")) };
+
+  c = "Session mein server state yaad rakhta hai. JWT mein server sirf signature check karta hai, isliye logout par token expiry tak chal sakta hai jab tak revoke na karo.";
+  FIGS.q20 = { cap: c, svg: sv(640, 262, c,
+    tx(150, 16, "Session-based", "middle", "b") + tx(480, 16, "JWT-based", "middle", "b") +
+    '<line class="life" x1="320" y1="6" x2="320" y2="256"/>' +
+    bx(90, 28, 120, 32, "plain", ["Browser"]) + ar(150, 60, 150, 106) + tx(158, 88, "sends JSESSIONID cookie", "start", "sm") +
+    bx(90, 106, 120, 32, "box", ["Server"]) + ar(150, 138, 150, 184) + tx(158, 166, "looks up the session", "start", "sm") +
+    bx(80, 184, 140, 44, "plain", ["Session store", "memory or Redis"]) +
+    bx(420, 28, 120, 32, "plain", ["Client"]) + ar(480, 60, 480, 106) + tx(488, 88, "Bearer JWT in header", "start", "sm") +
+    bx(420, 106, 120, 32, "box", ["Server"]) + ar(480, 138, 480, 184) + tx(488, 166, "checks signature + exp", "start", "sm") +
+    bx(410, 184, 140, 44, "plain", ["Signing key", "no per-user state"]) +
+    tx(150, 252, "Logout: session delete, turant band", "middle", "sm") + tx(480, 252, "Revoke tak token chalta rehta hai", "middle", "sm red")) };
+
+  c = "Sirf ORDER_READ hona kaafi nahi hai. Agar ownership check na ho to User A, User B ka order dekh leta hai (BOLA / IDOR).";
+  FIGS.q39 = { cap: c, svg: sv(640, 215, c,
+    bx(8, 92, 90, 36, "plain", ["User A"]) + ar(98, 110, 190, 110) + tx(144, 102, "GET /orders/42", "middle", "sm") +
+    bx(190, 75, 180, 70, "box", ["Spring API", "has ORDER_READ", "order 42 owner: User B"]) +
+    ar(370, 92, 430, 46, "r") + bx(430, 24, 202, 46, "redbox", ["Without owner check:", "200 OK with B data"], "red") +
+    ar(370, 128, 430, 174, "g") + bx(430, 152, 202, 46, "grnbox", ["With owner check:", "403 Forbidden"], "grn")) };
+})();
+
+function buildFig(F) {
+  var f = el("figure", "fig"), w = el("div", "figwrap"); w.innerHTML = F.svg;
+  f.appendChild(w); f.appendChild(el("figcaption", null, F.cap)); return f;
+}
+
+/* header legend + chips */
+var legend = document.getElementById("legend");
+var chips = document.getElementById("chips");
+TOPICS.forEach(function (T) {
+  var count = Q.filter(function (x) { return x.t === T.k; }).length;
+  var p = el("span", "pill"); p.setAttribute("data-t", T.k);
+  p.appendChild(el("i")); p.appendChild(document.createTextNode(T.name + " (" + count + ")"));
+  legend.appendChild(p);
+  var a = el("a", "chip", T.name); a.href = "#s-" + T.k; a.setAttribute("data-t", T.k);
+  chips.appendChild(a);
+});
+[["Practice","#practice"],["Checklist","#checklist"],["Links","#links"]].forEach(function (x) {
+  var a = el("a", "chip plain", x[0]); a.href = x[1]; chips.appendChild(a);
+});
+
+/* priority */
+var byN = {}; Q.forEach(function (x) { byN[x.n] = x; });
+var prio = document.getElementById("prio");
+PRIORITY.forEach(function (n) {
+  var a = el("a", "qnum", pad(n)); a.href = "#q" + n; a.setAttribute("data-t", byN[n].t); a.title = byN[n].q;
+  prio.appendChild(a);
+});
+
+/* topics + cards */
+function buildCard(x) {
+  var c = el("article", "card"); c.id = "q" + x.n; c.setAttribute("data-t", x.t);
+  c.setAttribute("data-s", (x.q + " " + x.en.replace(/\*\*/g, "") + " " + x.hi + " " + (x.pts || []).join(" ") + " " + (x.deep || []).map(function (b) { return b[0] + " " + b[1]; }).join(" ")).toLowerCase());
+  var top = el("div", "card-top");
+  top.appendChild(el("div", "qbadge", pad(x.n)));
+  var h = el("h3", null, x.q);
+  if (PRIORITY.indexOf(x.n) > -1) h.appendChild(el("span", "star", "Pehle padho"));
+  top.appendChild(h); c.appendChild(top);
+
+  var g = el("div", "say-grid");
+  var en = el("div", "say en"); en.appendChild(el("h4", null, "Interview definition (English)")); en.appendChild(rich(x.en));
+  var hi = el("div", "say hi"); hi.appendChild(el("h4", null, "Hinglish mein samjho")); hi.appendChild(el("p", null, x.hi));
+  g.appendChild(en); g.appendChild(hi); c.appendChild(g);
+
+  if (x.fig) x.fig.forEach(function (k) { c.appendChild(buildFig(FIGS[k])); });
+  if (x.flow && !x.fig) {
+    var f = el("div", "flow");
+    x.flow.forEach(function (s, i) { if (i) f.appendChild(el("b", null, "→")); f.appendChild(el("span", null, s)); });
+    c.appendChild(f);
+  }
+  if (x.table) {
+    var w = el("div", "tablewrap"), t = el("table"), th = el("thead"), tr = el("tr");
+    x.table.head.forEach(function (hd) { tr.appendChild(el("th", null, hd)); }); th.appendChild(tr); t.appendChild(th);
+    var tb = el("tbody");
+    x.table.rows.forEach(function (r) { var rr = el("tr"); r.forEach(function (cell) { rr.appendChild(el("td", null, cell)); }); tb.appendChild(rr); });
+    t.appendChild(tb); w.appendChild(t); c.appendChild(w);
+  }
+  if (x.deep) {
+    var dp = el("div", "deep"); dp.appendChild(el("h4", null, "Detail mein samjho"));
+    x.deep.forEach(function (b) { dp.appendChild(el("h5", null, b[0])); dp.appendChild(el("p", null, b[1])); });
+    c.appendChild(dp);
+  }
+  if (x.pts) {
+    var ul = el("ul", "pts"); x.pts.forEach(function (p) { ul.appendChild(el("li", null, p)); }); c.appendChild(ul);
+  }
+  if (x.steps) {
+    var ol = el("ol", "steps"); x.steps.forEach(function (s) { ol.appendChild(el("li", null, s)); }); c.appendChild(ol);
+  }
+  if (x.code) { var pre = el("pre"); pre.appendChild(el("code", null, x.code)); c.appendChild(pre); }
+  if (x.note) {
+    var n = el("div", "note " + (x.note.w ? "warn" : "tip")); n.appendChild(el("b", null, x.note.t)); n.appendChild(el("span", null, x.note.x)); c.appendChild(n);
+  }
+  if (x.ln && x.ln.length) {
+    var r = el("div", "refs"); r.appendChild(el("small", null, "Reference"));
+    x.ln.forEach(function (k) { var a = el("a", null, L[k][0]); a.href = L[k][1]; a.target = "_blank"; a.rel = "noopener"; r.appendChild(a); });
+    c.appendChild(r);
+  }
+  return c;
+}
+var main = document.getElementById("topics");
+TOPICS.forEach(function (T) {
+  var s = el("section", "topic"); s.id = "s-" + T.k; s.setAttribute("data-t", T.k);
+  var h = el("div", "sec-head"); h.appendChild(el("h2", null, T.name)); h.appendChild(el("span", null, T.sub)); s.appendChild(h);
+  var cards = el("div", "cards");
+  Q.filter(function (x) { return x.t === T.k; }).sort(function (a, b) { return a.n - b.n; }).forEach(function (x) { cards.appendChild(buildCard(x)); });
+  s.appendChild(cards); main.appendChild(s);
+});
+
+/* practice */
+var pq = document.getElementById("pq");
+PRACTICE.forEach(function (p, i) {
+  var d = el("details", "pq"); d.setAttribute("data-t", i % 2 ? "web" : "prod");
+  var s = el("summary"); s.appendChild(el("span", "qbadge", String(i + 1))); s.appendChild(el("span", null, p[0])); d.appendChild(s);
+  d.appendChild(el("p", "ans", p[1])); pq.appendChild(d);
+});
+
+/* checklist with remembered ticks */
+var store = null; try { store = JSON.parse(localStorage.getItem("ss-check") || "[]"); } catch (e) { store = []; }
+if (!Array.isArray(store)) store = [];
+var chk = document.getElementById("check");
+function refresh() {
+  var done = chk.querySelectorAll("input:checked").length;
+  document.getElementById("cnt").textContent = done + " / " + CHECK.length + " done";
+  document.getElementById("bar").style.width = (done / CHECK.length * 100) + "%";
+}
+CHECK.forEach(function (t, i) {
+  var l = el("label"); var inp = el("input"); inp.type = "checkbox"; inp.id = "ck" + i; inp.checked = store.indexOf(i) > -1;
+  inp.addEventListener("change", function () {
+    var all = []; chk.querySelectorAll("input").forEach(function (b, j) { if (b.checked) all.push(j); });
+    try { localStorage.setItem("ss-check", JSON.stringify(all)); } catch (e) {}
+    refresh();
+  });
+  l.appendChild(inp); l.appendChild(el("span", null, t)); chk.appendChild(l);
+});
+refresh();
+
+/* links table */
+var lr = document.getElementById("linkrows");
+LINKROWS.forEach(function (r) {
+  var row = el("div", "lrow"); row.setAttribute("data-t", r[0]);
+  row.appendChild(el("div", "lt", r[1])); row.appendChild(el("div", "lq", "Q " + r[2]));
+  var ll = el("div", "ll");
+  r[3].forEach(function (k) { var a = el("a", null, L[k][0]); a.href = L[k][1]; a.target = "_blank"; a.rel = "noopener"; ll.appendChild(a); });
+  row.appendChild(ll); lr.appendChild(row);
+});
+
+/* search */
+document.getElementById("search").addEventListener("input", function (e) {
+  var v = e.target.value.trim().toLowerCase();
+  document.querySelectorAll(".card").forEach(function (c) { c.hidden = v && c.getAttribute("data-s").indexOf(v) === -1; });
+  document.querySelectorAll("section.topic .cards").forEach(function (g) {
+    var any = g.querySelector(".card:not([hidden])");
+    g.parentElement.hidden = !any;
+  });
+});
+</script>
+
+</body></html>
