@@ -1,0 +1,1296 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Servlets to AOP Interview Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky topic bar, six colour-coded topic sections, one card per question
+   (Interview line in English, Hinglish samjho, key points, code), then practice, checklist, links. */
+:root {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --fg: #14172b;
+  --muted: #566079;
+  --border: #dde1ee;
+  --code-bg: #101426;
+  --code-fg: #e6e9ff;
+  --on-tone: #ffffff;
+  --warn-bg: #fff4d6;
+  --warn-ink: #7a4a00;
+  --tip-bg: #e3f6e9;
+  --tip-ink: #14532d;
+
+  --core: #4f46e5;  --core-ink: #4338ca;  --core-tint: #ecebff;
+  --auth: #0f9e8f;  --auth-ink: #0b766b;  --auth-tint: #d9f5f1;
+  --role: #0284c7;  --role-ink: #0369a1;  --role-tint: #def1fd;
+  --jwt:  #ea580c;  --jwt-ink:  #c2410c;  --jwt-tint:  #ffe9d6;
+  --web:  #e11d48;  --web-ink:  #be123c;  --web-tint:  #ffe3e9;
+  --prod: #a21caf;  --prod-ink: #86198f;  --prod-tint: #f8e4fb;
+
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1120; --surface: #171b2f; --fg: #eceefb; --muted: #a3a9c6; --border: #2a3050;
+    --code-bg: #0a0d1a; --code-fg: #e6e9ff; --on-tone: #0e1120;
+    --warn-bg: #3a2c0c; --warn-ink: #ffd88a; --tip-bg: #12341f; --tip-ink: #9ae6b4;
+    --core: #8b8cff; --core-ink: #a9aaff; --core-tint: #22254d;
+    --auth: #2dd4bf; --auth-ink: #5eead4; --auth-tint: #11332f;
+    --role: #38bdf8; --role-ink: #7dd3fc; --role-tint: #10304a;
+    --jwt:  #fb923c; --jwt-ink:  #fdba74; --jwt-tint:  #3a2314;
+    --web:  #fb7185; --web-ink:  #fda4af; --web-tint:  #3d1823;
+    --prod: #e879f9; --prod-ink: #f0abfc; --prod-tint: #351a3d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1120; --surface: #171b2f; --fg: #eceefb; --muted: #a3a9c6; --border: #2a3050;
+  --code-bg: #0a0d1a; --code-fg: #e6e9ff; --on-tone: #0e1120;
+  --warn-bg: #3a2c0c; --warn-ink: #ffd88a; --tip-bg: #12341f; --tip-ink: #9ae6b4;
+  --core: #8b8cff; --core-ink: #a9aaff; --core-tint: #22254d;
+  --auth: #2dd4bf; --auth-ink: #5eead4; --auth-tint: #11332f;
+  --role: #38bdf8; --role-ink: #7dd3fc; --role-tint: #10304a;
+  --jwt:  #fb923c; --jwt-ink:  #fdba74; --jwt-tint:  #3a2314;
+  --web:  #fb7185; --web-ink:  #fda4af; --web-tint:  #3d1823;
+  --prod: #e879f9; --prod-ink: #f0abfc; --prod-tint: #351a3d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.6; padding-inline: 16px; }
+.wrap { max-width: 980px; margin-inline: auto; padding-block: 24px 64px; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--core); outline-offset: 2px; border-radius: 4px; }
+
+/* topic tones */
+[data-t="core"] { --tone: var(--core); --ink: var(--core-ink); --tint: var(--core-tint); }
+[data-t="auth"] { --tone: var(--auth); --ink: var(--auth-ink); --tint: var(--auth-tint); }
+[data-t="role"] { --tone: var(--role); --ink: var(--role-ink); --tint: var(--role-tint); }
+[data-t="jwt"]  { --tone: var(--jwt);  --ink: var(--jwt-ink);  --tint: var(--jwt-tint); }
+[data-t="web"]  { --tone: var(--web);  --ink: var(--web-ink);  --tint: var(--web-tint); }
+[data-t="prod"] { --tone: var(--prod); --ink: var(--prod-ink); --tint: var(--prod-tint); }
+
+/* header */
+.hero { display: grid; gap: 12px; padding-block: 8px 20px; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(32px, 6vw, 52px); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.02em; }
+.hero p { margin: 0; color: var(--muted); max-width: 62ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--tint); color: var(--ink); }
+.pill i { width: 9px; height: 9px; border-radius: 50%; background: var(--tone); display: inline-block; }
+
+/* sticky nav */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; margin-inline: -16px; padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); display: grid; gap: 8px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.chip { flex: none; text-decoration: none; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--tint); color: var(--ink); border: 1px solid transparent; white-space: nowrap; }
+.chip:hover { border-color: var(--tone); }
+.chip.plain { background: var(--surface); color: var(--fg); border-color: var(--border); }
+.search { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); font: inherit; font-size: 15px; }
+
+/* priority box */
+.start { margin-block: 24px; padding: 18px 20px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); display: grid; gap: 10px; }
+.start h2 { margin: 0; font-family: var(--font-display); font-size: 20px; }
+.start p { margin: 0; color: var(--muted); }
+.qnums { display: flex; flex-wrap: wrap; gap: 6px; }
+.qnum { text-decoration: none; font-family: var(--font-mono); font-size: 13px; font-weight: 500; padding: 3px 9px; border-radius: 8px; background: var(--tint); color: var(--ink); }
+.qnum:hover { background: var(--tone); color: var(--on-tone); }
+
+/* sections */
+section.topic { margin-block: 40px 0; scroll-margin-top: 110px; }
+.sec-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid var(--tone); }
+.sec-head h2 { margin: 0; font-family: var(--font-display); font-size: clamp(24px, 4vw, 32px); color: var(--ink); text-wrap: balance; }
+.sec-head span { color: var(--muted); font-size: 14px; }
+.cards { display: grid; gap: 18px; }
+
+/* card */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: grid; gap: 14px; scroll-margin-top: 110px; min-width: 0; }
+.card[hidden] { display: none; }
+.card-top { display: flex; gap: 12px; align-items: flex-start; }
+.qbadge { flex: none; min-width: 46px; height: 34px; padding-inline: 8px; display: grid; place-items: center; border-radius: 10px; background: var(--tone); color: var(--on-tone); font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+.card h3 { margin: 0; font-family: var(--font-display); font-size: clamp(19px, 3vw, 23px); line-height: 1.25; text-wrap: balance; min-width: 0; padding-top: 2px; }
+.star { display: inline-block; margin-left: 8px; vertical-align: middle; font-family: var(--font-body); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--tone); color: var(--on-tone); }
+
+.say-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.say { border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.say.en { background: var(--tint); }
+.say.hi { background: var(--bg); border: 1px dashed var(--tone); }
+.say h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+.say p { margin: 0; font-size: 16px; }
+.say.en p { font-weight: 500; }
+.say strong { font-weight: 700; color: var(--ink); background: var(--surface); padding: 0 5px; border-radius: 5px; }
+
+.deep { border-radius: 12px; border: 1px solid var(--border); border-left: 4px solid var(--tone); padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.deep h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+.deep h5 { margin: 10px 0 0; font-family: var(--font-display); font-size: 17px; color: var(--ink); text-wrap: balance; }
+.deep p { margin: 0; }
+
+/* diagrams */
+.fig { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.figwrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); padding: 10px; }
+.figwrap svg { display: block; width: 100%; min-width: 560px; height: auto; color: var(--fg); }
+.fig figcaption { color: var(--muted); font-size: 14px; }
+.fig text { fill: currentColor; font-family: var(--font-body); font-size: 12.5px; }
+.fig text.mono { font-family: var(--font-mono); font-size: 12px; }
+.fig text.b { font-weight: 700; }
+.fig text.dot { font-size: 26px; font-weight: 700; }
+.fig text.sm { font-size: 11.5px; fill: var(--muted); }
+.fig text.red { fill: var(--web-ink); }
+.fig text.grn { fill: var(--auth-ink); }
+.fig .box { fill: var(--tint); stroke: var(--tone); stroke-width: 1.5; }
+.fig .plain { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
+.fig .redbox { fill: var(--web-tint); stroke: var(--web); stroke-width: 1.5; }
+.fig .grnbox { fill: var(--auth-tint); stroke: var(--auth); stroke-width: 1.5; }
+.fig .k-core { fill: var(--core-tint); stroke: var(--core); stroke-width: 1.5; }
+.fig .k-role { fill: var(--role-tint); stroke: var(--role); stroke-width: 1.5; }
+.fig .k-jwt { fill: var(--jwt-tint); stroke: var(--jwt); stroke-width: 1.5; }
+.fig .k-web { fill: var(--web-tint); stroke: var(--web); stroke-width: 1.5; }
+.fig .k-auth { fill: var(--auth-tint); stroke: var(--auth); stroke-width: 1.5; }
+.fig .k-prod { fill: var(--prod-tint); stroke: var(--prod); stroke-width: 1.5; }
+.fig .ln { stroke: currentColor; stroke-width: 1.5; fill: none; }
+.fig .redln { stroke: var(--web); stroke-width: 1.75; fill: none; }
+.fig .grnln { stroke: var(--auth); stroke-width: 1.75; fill: none; }
+.fig .dash { stroke-dasharray: 5 4; }
+.fig .life { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
+.mk { fill: currentColor; }
+.mkr { fill: var(--web); }
+.mkg { fill: var(--auth); }
+ul.pts { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+ul.pts li { padding-left: 22px; position: relative; min-width: 0; }
+ul.pts li::before { content: ""; position: absolute; left: 4px; top: .6em; width: 8px; height: 8px; border-radius: 3px; background: var(--tone); }
+.sub { margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.flow span { padding: 5px 10px; border-radius: 8px; background: var(--tint); color: var(--ink); font-size: 14px; font-weight: 600; }
+.flow b { color: var(--tone); font-weight: 700; }
+
+ol.steps { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; counter-reset: s; }
+ol.steps li { counter-increment: s; padding-left: 34px; position: relative; }
+ol.steps li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; border-radius: 50%; background: var(--tone); color: var(--on-tone); font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+
+.tablewrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; vertical-align: top; }
+th { background: var(--tone); color: var(--on-tone); font-weight: 600; white-space: nowrap; }
+td { border-top: 1px solid var(--border); }
+td code, th code { font-family: var(--font-mono); font-size: 13px; }
+
+pre { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; border-left: 4px solid var(--tone); }
+code.i { font-family: var(--font-mono); font-size: .88em; background: var(--tint); color: var(--ink); padding: 1px 6px; border-radius: 6px; }
+
+.note { border-radius: 12px; padding: 11px 14px; font-size: 15px; display: grid; gap: 2px; }
+.note b { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.note.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.note.tip { background: var(--tip-bg); color: var(--tip-ink); }
+
+.refs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px; border-top: 1px solid var(--border); }
+.refs small { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.refs a { font-size: 13px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--tone); color: var(--ink); }
+.refs a:hover { background: var(--tone); color: var(--on-tone); }
+
+/* practice */
+.practice { display: grid; gap: 10px; }
+details.pq { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0; }
+details.pq summary { cursor: pointer; padding: 12px 16px; font-weight: 600; display: flex; gap: 10px; align-items: center; list-style: none; }
+details.pq summary::-webkit-details-marker { display: none; }
+details.pq summary .qbadge { height: 28px; min-width: 34px; font-size: 13px; }
+details.pq summary::after { content: "Answer dekho"; margin-left: auto; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+details.pq[open] summary::after { content: "Chhupao"; }
+details.pq .ans { padding: 0 16px 14px; margin: 0; color: var(--fg); }
+
+.check { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 8px; }
+.check label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-weight: 500; }
+.check input { width: 18px; height: 18px; accent-color: var(--tone); flex: none; }
+.check input:checked + span { text-decoration: line-through; color: var(--muted); }
+.progress { height: 8px; border-radius: 99px; background: var(--border); overflow: hidden; }
+.progress div { height: 100%; width: 0; background: var(--tone); transition: width .25s; }
+
+.final { margin-top: 24px; padding: 18px 20px; border-radius: 16px; background: var(--tint); color: var(--fg); display: grid; gap: 8px; }
+.final h3 { margin: 0; font-family: var(--font-display); color: var(--ink); }
+.final p { margin: 0; }
+
+/* link table */
+.links { display: grid; gap: 10px; }
+.lrow { background: var(--surface); border: 1px solid var(--border); border-left: 6px solid var(--tone); border-radius: 12px; padding: 12px 16px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .5fr) minmax(0, 1.2fr); gap: 8px 16px; align-items: center; }
+.lrow .lt { font-weight: 600; }
+.lrow .lq { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.lrow .ll { display: flex; flex-wrap: wrap; gap: 6px; }
+.lrow .ll a { font-size: 13px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 8px; background: var(--tint); color: var(--ink); }
+.lrow .ll a:hover { background: var(--tone); color: var(--on-tone); }
+.fine { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+@media (max-width: 640px) {
+  .lrow { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  details.pq summary { flex-wrap: wrap; }
+  details.pq summary::after { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .progress div { transition: none; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<marker id="ah" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mk" d="M0,0 L9,4.5 L0,9 z"/></marker>
+<marker id="ahr" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mkr" d="M0,0 L9,4.5 L0,9 z"/></marker>
+<marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mkg" d="M0,0 L9,4.5 L0,9 z"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header class="hero" data-t="core">
+    <div class="eyebrow">Java / Spring Boot &middot; SDE-2 backend interviews</div>
+    <h1>Servlets to AOP Interview Notes</h1>
+    <p>43 questions, topic ke hisaab se: Servlets aur Tomcat, Spring MVC, exception handling, profiles, filters, interceptors aur AOP. Har question mein English interview definition, Hinglish samjhaana, diagram, code aur reference links.</p>
+    <div class="legend" id="legend"></div>
+  </header>
+
+  <div class="bar">
+    <div class="chips" id="chips"></div>
+    <input class="search" id="search" type="search" placeholder="Search karo: filter, aop, dispatcher, profile, proxy ..." aria-label="Search questions">
+  </div>
+
+  <div class="start" data-t="core">
+    <h2>Pehle yeh 12 questions padho</h2>
+    <p>Interview mein sabse zyada puchhe jaane wale. Har answer 30 se 60 second mein bolne ki practice karo, phir code bina notes dekhe likho.</p>
+    <div class="qnums" id="prio"></div>
+  </div>
+
+  <main id="topics"></main>
+
+  <section class="topic" id="practice" data-t="prod">
+    <div class="sec-head"><h2>Practice: interviewer follow-ups</h2><span>Pehle khud bolo, phir answer kholo</span></div>
+    <div class="practice" id="pq"></div>
+  </section>
+
+  <section class="topic" id="checklist" data-t="auth">
+    <div class="sec-head"><h2>Quick revision checklist</h2><span id="cnt">0 / 26 done</span></div>
+    <div class="progress" aria-hidden="true"><div id="bar"></div></div>
+    <div class="check" id="check" style="margin-top:12px"></div>
+    <div class="final" data-t="prod">
+      <h3>Final interview tip</h3>
+      <p>Har answer ka pattern rakho: <b>definition</b>, phir <b>kaunsi problem solve karta hai</b>, phir <b>ek chhota example</b>. Isse answer yaad kiya hua nahi, samjha hua lagta hai.</p>
+      <p>Sabse zyada pooche jaane wale: Tomcat request flow, DispatcherServlet flow, @RestControllerAdvice, profiles, filter short-circuit aur body-read bug, Filter vs Interceptor, advice types aur @Around, CGLIB vs JDK proxy, aur BeanPostProcessor se proxy creation.</p>
+    </div>
+  </section>
+
+  <section class="topic" id="links" data-t="role">
+    <div class="sec-head"><h2>Reference links by topic</h2><span>Official docs aur references</span></div>
+    <p class="fine">Yeh links maine open karke verify nahi kiye. Agar koi page move ho gaya ho toh docs site par search kar lena.</p>
+    <div class="links" id="linkrows"></div>
+  </section>
+</div>
+
+<script>
+var TOPICS = [
+  { k: "core", name: "Servlets and Tomcat", sub: "java.net ki dikkat, Servlet container, lifecycle, WAR vs JAR" },
+  { k: "auth", name: "Spring MVC", sub: "DispatcherServlet, HandlerMapping, request flow, MVC vs Boot" },
+  { k: "role", name: "Exception Handling and REST Design", sub: "Status codes, REST endpoints, @RestControllerAdvice" },
+  { k: "jwt",  name: "Profiles and YAML", sub: "application.yml, dev/prod profiles, @Profile beans" },
+  { k: "web",  name: "Filters and Interceptors", sub: "doFilter, FilterChain, OncePerRequestFilter, HandlerInterceptor" },
+  { k: "prod", name: "Spring AOP", sub: "Aspect, advice types, pointcuts, proxies, custom annotations" }
+];
+
+var L = {
+  servletSpec: ["Jakarta Servlet specification", "https://jakarta.ee/specifications/servlet/"],
+  tomcat: ["Apache Tomcat documentation", "https://tomcat.apache.org/tomcat-10.1-doc/index.html"],
+  mvc: ["Spring Web MVC", "https://docs.spring.io/spring-framework/reference/web/webmvc.html"],
+  dispatcher: ["DispatcherServlet", "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet.html"],
+  excHandler: ["@ExceptionHandler", "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-exceptionhandler.html"],
+  mdnStatus: ["MDN: HTTP status codes", "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status"],
+  profiles: ["Spring Boot Profiles", "https://docs.spring.io/spring-boot/reference/features/profiles.html"],
+  extcfg: ["Externalized Configuration", "https://docs.spring.io/spring-boot/reference/features/external-config.html"],
+  bootWeb: ["Boot: Servlet web applications", "https://docs.spring.io/spring-boot/reference/web/servlet.html"],
+  interceptors: ["Spring MVC Interceptors", "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/interceptors.html"],
+  aop: ["Spring AOP", "https://docs.spring.io/spring-framework/reference/core/aop.html"],
+  aopAdvice: ["Declaring Advice", "https://docs.spring.io/spring-framework/reference/core/aop/ataspectj/advice.html"],
+  aopPointcut: ["Declaring a Pointcut", "https://docs.spring.io/spring-framework/reference/core/aop/ataspectj/pointcuts.html"],
+  aopProxy: ["Proxying Mechanisms", "https://docs.spring.io/spring-framework/reference/core/aop/proxying.html"],
+  bpp: ["Container Extension Points (BeanPostProcessor)", "https://docs.spring.io/spring-framework/reference/core/beans/factory-extension.html"]
+};
+
+var PRIORITY = [3, 8, 16, 21, 24, 27, 29, 30, 35, 36, 40, 43];
+
+/* n = question number, t = topic, q = title, en = interview definition, hi = Hinglish samjho,
+   pts = key points, fig = diagram keys, steps = numbered list, table, code, note {w|t}, ln = link keys */
+var Q = [
+{ n:1, t:"core", q:"Why is it hard to build a web app with plain java.net, and how do Servlets and Tomcat solve it?",
+  en:"With **java.net** (**ServerSocket**) the application only sees a **raw stream of bytes**. The developer must do **manual request parsing**, **manual routing** with if-else, **manual response formatting** and **manual multithreading**. A **Servlet container** like **Apache Tomcat** takes over these low-level tasks, and developers only write **Servlets** with the business logic.",
+  hi:"Core Java ko HTTP ka kuch pata nahi, use sirf bytes dikhte hain. GET ya POST pehchanna, URL nikalna, header padhna, status code likhna, aur ek saath kai users ke liye threads banana, sab haath se karna padta tha. Tomcat ye sab khud karta hai.",
+  pts:["Raw bytes: GET, POST, endpoint ya header ka koi idea nahi.","Parsing: method, URL, headers aur body ke liye string parsing ka code khud likho.","Routing: kaun sa URL kis method par jaaye, iske liye gande if-else.","Response: status line, headers aur body ko HTTP format mein khud banao.","Multithreading: thread pool khud banao, warna ek time par sirf ek user kaam kar paayega.","Business logic likhne se pehle hi 13+ manual steps."],
+  code:`ServerSocket server = new ServerSocket(8080);
+Socket socket = server.accept();   // yahan se aage sab kuch tumhara kaam`,
+  ln:["servletSpec","tomcat"] },
+{ n:2, t:"core", q:"What is a Servlet, and what is a Servlet container (Tomcat)?",
+  en:"A **Servlet** is a special Java class that handles the **business logic** for an endpoint, and its **lifecycle is managed by the container**, not by the developer with **new**. A **Servlet container** such as **Apache Tomcat** is a **long-running Java process** that listens on a port, **parses HTTP**, **manages threads** and creates **HttpServletRequest** and **HttpServletResponse** objects.",
+  hi:"Jaise Spring mein IoC container beans ko manage karta hai, waise hi Tomcat servlets ko manage karta hai. Tum new UserServlet() nahi likhte, Tomcat banata hai aur chalata hai.",
+  fig:["tomcat"],
+  note:{t:"Yaad rakho", x:"Servlet container ke examples: Tomcat, Jetty, Undertow. Spring Boot mein Tomcat default aata hai."},
+  ln:["servletSpec","tomcat"] },
+{ n:3, t:"core", q:"How does Tomcat process a request internally?",
+  en:"Tomcat **parses the raw HTTP request** into an **HttpServletRequest** object, creates an **empty HttpServletResponse**, picks the right **Servlet** using the **URL mapping**, and **passes both objects** to it. The Servlet reads data with the **request getters**, runs the logic, and fills the response with **setStatus()** and **getWriter().write()**.",
+  hi:"Request aayi to Tomcat use ek Java object bana deta hai (HttpServletRequest) aur ek khali response object. Phir mapping dekh kar sahi servlet ko dono pakda deta hai. Servlet request se padhta hai aur response mein likhta hai.",
+  fig:["tomcat"],
+  steps:["Request parsing: GET http://localhost:8080/hello se HttpServletRequest banta hai (method, URL, headers).","Tomcat khali HttpServletResponse bhi banata hai.","Mapping ke hisaab se sahi servlet (HelloServlet) chuna jaata hai aur dono objects pass hote hain.","Servlet getters se data nikalta hai, logic chalata hai, setters se response bharta hai."],
+  ln:["servletSpec"] },
+{ n:4, t:"core", q:"What is the difference between embedded and external Tomcat, and between JAR and WAR?",
+  en:"With **embedded Tomcat**, **spring-boot-starter-web** puts the server **inside the application JAR**, so the app runs by itself. With **external Tomcat** you install the server separately and deploy a **WAR (Web Application Archive)**, containing classes, servlets, **web.xml** or annotation config and static assets, into its **webapps/** folder, where Tomcat unpacks and runs it.",
+  hi:"Pehle Tomcat alag se download karte the aur WAR file uske webapps folder mein daalte the. Ab Boot mein Tomcat JAR ke andar hi hota hai, bas java -jar chalao.",
+  table:{ head:["","Embedded Tomcat","External Tomcat"], rows:[["Server kahan","App JAR ke andar","Alag install kiya hua"],["Package","JAR","WAR"],["Deploy","java -jar app.jar","WAR ko webapps/ mein copy"],["Aaj ka tareeka","Spring Boot default","Legacy ya jahan company ka shared server ho"]] },
+  code:`<packaging>war</packaging>
+
+<dependency>
+    <groupId>jakarta.servlet</groupId>
+    <artifactId>jakarta.servlet-api</artifactId>
+    <version>6.1.0</version>
+    <scope>provided</scope>
+</dependency>`,
+  note:{t:"scope provided kyun?", x:"Servlet API sirf compile ke time Maven ko chahiye. Runtime par Tomcat apni library deta hai. Agar WAR mein bhi bundle ho gayi to dono mein dependency conflict ho jaata hai."},
+  ln:["tomcat","bootWeb"] },
+{ n:5, t:"core", q:"Explain the Servlet lifecycle: init(), service() and destroy().",
+  en:"Tomcat calls **init(ServletConfig)** **once** when the servlet object is created, **service()** on **every request** (**HttpServlet** checks the HTTP verb and dispatches to **doGet(), doPost(), doPut(), doDelete()**) and **destroy()** **once** at shutdown or undeploy. By default servlets use **lazy initialization**, so the object is created on the **first request**.",
+  hi:"init ek baar: heavy loading ke liye (Spring ke @PostConstruct jaisa). service har request par. destroy ek baar: cleanup ke liye (@PreDestroy jaisa). Servlet ka object pehli request par banta hai.",
+  fig:["svlife"],
+  code:`@WebServlet("/users")
+public class UserServlet extends HttpServlet {
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String id = request.getParameter("id");
+        String name = request.getParameter("name");
+
+        response.setStatus(201);
+        response.setContentType("application/json");
+        response.getWriter().write("User Added Successfully");
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // GET handle karo
+    }
+}`,
+  note:{t:"Dhyan do", x:"Servlet mein endpoint class level par hota hai (@WebServlet(\"/users\")). Ek hi servlet us path ke GET, POST, PUT, DELETE sab sambhalta hai. Spring Boot ki tarah method level mapping nahi hoti."},
+  ln:["servletSpec"] },
+{ n:6, t:"core", q:"What are the limitations of raw Servlets?",
+  en:"Raw Servlets cause **tight coupling** (you create **new UserService()** inside the servlet), force **manual JSON handling** and **manual response building** in every method, and need **manual WAR deployment** with a server restart after each change. Repeated boilerplate in many servlets is what led to **Spring MVC** and its **DispatcherServlet**.",
+  hi:"Har servlet mein same boilerplate: JSON parse, status set, content type, writer. Service ka object new se banao to tight coupling. Aur har badlav ke baad WAR banao, copy karo, Tomcat restart karo.",
+  pts:["Tight coupling: servlet ke andar new UserService().","Manual JSON: string concatenation ya khud ka parsing code.","Manual response: setStatus, setContentType, getWriter har method mein.","Manual deployment: Maven package, WAR copy, server restart."],
+  ln:["mvc"] },
+
+{ n:7, t:"auth", q:"What is Spring MVC, and how is it different from Spring Boot?",
+  en:"**Spring Web MVC** (**spring-webmvc**) is the actual **web framework**: annotations like **@Controller, @RestController, @GetMapping, @PostMapping and @RequestBody** come from it. **Spring Boot** is not a separate web framework. It is an **auto-configuration layer** on top of Spring MVC that, through **spring-boot-starter-web**, sets up Tomcat, **DispatcherServlet** and **Jackson** for you.",
+  hi:"Controller, GetMapping jaise annotations Spring MVC ke hain, Boot ke nahi. Boot bas wo setup khud kar deta hai jo MVC mein haath se karna padta tha: Tomcat start karna, DispatcherServlet register karna, config likhna.",
+  note:{t:"Interview line", x:"'Spring MVC is the web framework, and Spring Boot auto-configures it.'"},
+  ln:["mvc","bootWeb"] },
+{ n:8, t:"auth", q:"What is DispatcherServlet (Front Controller), and what is the Spring MVC request flow?",
+  en:"**DispatcherServlet** is the single **central servlet** of a Spring MVC app, implementing the **Front Controller pattern**. **Tomcat** hands it the request objects, it asks **HandlerMapping** which controller method matches the URL and HTTP method, calls it through **HandlerAdapter**, converts JSON with **Jackson**, and for **@Controller** uses a **ViewResolver** to render the view.",
+  hi:"Har endpoint ke liye alag servlet banane ki jagah ek hi servlet sab request leta hai aur sahi controller tak pahunchata hai. Logging, validation aur JSON mapping jaisa repeat hone wala kaam wahi sambhalta hai.",
+  fig:["mvcflow"],
+  steps:["Tomcat raw request ko HttpServletRequest aur HttpServletResponse banata hai.","Dono objects DispatcherServlet ko diye jaate hain.","DispatcherServlet HandlerMapping se poochta hai: is URL aur HTTP method ke liye kaun sa controller method hai.","HandlerAdapter controller method ko invoke karta hai. Argument resolvers path variable, query param aur @RequestBody resolve karte hain.","Jackson JSON ko Java object mein badalta hai (aur return value ko wapas JSON mein).","@RestController: JSON seedha response body mein. @Controller: view name ViewResolver ke paas jaata hai."],
+  note:{t:"HandlerMapping table kaise banti hai", x:"Application startup par Spring IoC container ke saare @Controller aur @RestController beans scan hote hain, aur @GetMapping, @PostMapping jaise annotations se in-memory mapping table banti hai."},
+  ln:["dispatcher","mvc"] },
+{ n:9, t:"auth", q:"Who handles the request body, path variables and query parameters in Spring MVC?",
+  en:"The **JSON request body** is converted to a Java object by the **Jackson library** through **DispatcherServlet**. **Path variables** like **/users/{id}** are resolved by **HandlerMethodArgumentResolver**. **Query parameters** like **/users?id=1** are parsed by **Tomcat** and available as **HttpServletRequest** parameters.",
+  hi:"Body ka JSON Jackson object mein badalta hai. /users/5 wala 5 argument resolver nikalta hai. ?id=1 wali value Tomcat pehle hi parse karke request object mein rakh deta hai.",
+  table:{ head:["Data","Kaise aata hai","Kaun resolve karta hai"], rows:[["Request body (JSON)","POST ya PUT payload","Jackson (DispatcherServlet ke through)"],["Path variable","/users/{id}","HandlerMethodArgumentResolver"],["Query parameter","/users?id=1","Tomcat (HttpServletRequest parameters)"]] },
+  note:{t:"Extra (mera note)", x:"Notes mein path variable ko HandlerMapping ke andar likha gaya hai. Interview mein safe wording ye hai: HandlerMapping sahi method dhoondhta hai aur HandlerMethodArgumentResolver (HandlerAdapter ke through) uske arguments bharta hai."},
+  ln:["mvc"] },
+{ n:10, t:"auth", q:"What does Spring Boot automate compared to pure Spring MVC?",
+  en:"Pure **Spring MVC** needs manual dependencies (**spring-webmvc, tomcat-embed-core, jackson-databind**), a **@Configuration** class with **@EnableWebMvc** and **@ComponentScan**, and a **main()** that creates the **Tomcat**, registers **DispatcherServlet**, and starts the server. **Spring Boot** does all of this with **@SpringBootApplication** and **spring-boot-starter-web**.",
+  hi:"Boot ke bina 25+ lines ka setup likhna padta hai. Boot mein ek annotation aur ek starter se wahi sab ho jaata hai.",
+  code:`@Configuration
+@ComponentScan(basePackages = "in.codearmy")
+@EnableWebMvc
+public class WebConfig { }
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Tomcat tomcat = new Tomcat();
+        tomcat.setPort(8080);
+        tomcat.getConnector();
+
+        Context context = tomcat.addContext("", new File("src/main/webapp").getAbsolutePath());
+
+        AnnotationConfigWebApplicationContext springContext =
+                new AnnotationConfigWebApplicationContext();
+        springContext.register(WebConfig.class);
+
+        DispatcherServlet dispatcherServlet = new DispatcherServlet(springContext);
+        tomcat.addServlet("", "dispatcherServlet", dispatcherServlet);
+        context.addServletMappingDecoded("/", "dispatcherServlet");
+
+        tomcat.start();
+        tomcat.getServer().await();
+    }
+}`,
+  ln:["mvc","bootWeb"] },
+{ n:11, t:"auth", q:"Explain traditional MVC (Model, View, Controller) and the difference between @Controller and @RestController.",
+  en:"In **traditional MVC**, the **Controller** (**@Controller**) returns a **view name**, the **Model** carries dynamic data to the view, and the **View** (**HTML or JSP**) is rendered by a **ViewResolver** using a prefix and suffix. **@RestController = @Controller + @ResponseBody**, so the return value is written directly as the **response body (JSON)** and no view is rendered.",
+  hi:"Purane tareeke mein controller \"home\" jaisa naam return karta tha, ViewResolver usse /WEB-INF/views/home.jsp bana deta tha. REST mein hum seedha data (JSON) lautate hain, isliye @RestController.",
+  code:`@Controller
+public class HomeController {
+    @GetMapping("/home")
+    public String home(Model model) {
+        model.addAttribute("message", "Enter Name");
+        return "home";        // ViewResolver: /WEB-INF/views/home.jsp
+    }
+}`,
+  table:{ head:["Part","Kaam"], rows:[["Model","Controller se view tak dynamic data le jaata hai"],["View","HTML ya JSP jo browser mein dikhta hai"],["Controller","Request leta hai aur view name return karta hai"]] },
+  ln:["mvc"] },
+
+{ n:12, t:"role", q:"What makes an API professional: HTTP status code families and correct codes?",
+  en:"A **professional API** returns the **correct HTTP status code** and a **standard JSON error format** for every case, instead of always sending **200 OK**. The families are **1xx** informational, **2xx** success (**200, 201, 204**), **3xx** redirection (**301, 302**), **4xx** client errors (**400, 404, 409**) and **5xx** server errors (**500**).",
+  hi:"Beginner har case mein 200 bhejta hai aur body mein likh deta hai \"No data found\". Ye galat hai, kyunki 200 ka matlab hi success hai. Sahi code se frontend aur monitoring dono ko pata chalta hai ki asal mein kya hua.",
+  table:{ head:["Family","Matlab","Examples"], rows:[["1xx","Informational","Request mili, process ho rahi hai"],["2xx","Success","200 OK, 201 Created, 204 No Content (delete ke baad, body khali)"],["3xx","Redirection","301 Moved Permanently, 302 Found"],["4xx","Client error","400 invalid input, 404 resource nahi mila, 409 duplicate (email pehle se hai)"],["5xx","Server error","500 unhandled exception, bug ya DB down"]] },
+  ln:["mdnStatus"] },
+{ n:13, t:"role", q:"How should REST endpoints be named?",
+  en:"In a **REST** API the URL names the **resource** (a noun like **/api/students**) and the **HTTP verb** carries the action. Do not put verbs like **/create, /get, /update, /delete** in the path.",
+  hi:"Path mein action nahi, sirf resource. Action GET, POST, PUT, DELETE se pata chal jaata hai.",
+  table:{ head:["Beginner (galat)","Professional (sahi)","Kaam"], rows:[["POST /api/students/create","POST /api/students","Naya student banao"],["GET /api/students/get","GET /api/students","Sab students ki list"],["GET /api/students/get?id=1","GET /api/students/{id}","Ek student (@PathVariable)"],["PUT /api/students/update","PUT /api/students/{id}","Student update"],["DELETE /api/students/delete","DELETE /api/students/{id}","Student delete"],["-","PATCH /api/students/{id}","Aanshik badlav ya soft delete"]] },
+  ln:["mvc"] },
+{ n:14, t:"role", q:"Why is handling exceptions inside controllers bad practice?",
+  en:"Putting **if-else null checks** in every controller method causes **controller clutter**, violates the **Single Responsibility Principle** (a controller should only receive the request and delegate to the service) and produces **inconsistent error responses**. The fix is a separate **exception flow**: the service throws an exception and a **Global Exception Handler** turns it into the response.",
+  hi:"Har method mein if (student == null) return notFound likhoge to controller bhar jaayega aur har jagah error ka format alag hoga. Service exception phenk de aur ek central handler jawab bana de.",
+  fig:["excflow"],
+  steps:["Happy flow: Client, Controller, Service, Repository, wapas Controller, Client.","Exception flow: Client, Controller, Service, exception throw, Global Exception Handler, Client."],
+  ln:["excHandler"] },
+{ n:15, t:"role", q:"What does Spring Boot do by default when an exception is not handled?",
+  en:"Spring Boot **redirects the exception to the /error endpoint**. REST clients like **Postman** get a **default JSON** with **timestamp, status (500), error and path**, while a **browser** gets the **Whitelabel Error Page** (HTML). To see the exception message in development, set **spring.web.error.include-message=always**, and remove it in production.",
+  hi:"Kuch bhi handle nahi kiya to Boot khud /error par bhej deta hai. Postman ko default JSON milta hai, browser ko white page. Message dikhana ho to property lagao, par production mein hata do, warna andar ki details bahar chali jaati hain.",
+  code:`# sirf development mein
+spring.web.error.include-message=always`,
+  note:{w:1, t:"Dhyan do", x:"Production mein exception message client ko mat dikhao. Security ke liye generic message do."},
+  ln:["bootWeb"] },
+{ n:16, t:"role", q:"How do you implement global exception handling with @RestControllerAdvice and @ExceptionHandler?",
+  en:"Create custom exceptions by **extending RuntimeException**, throw them from the **service layer** (for example **findById(id).orElseThrow(...)**), and catch them in one class annotated with **@RestControllerAdvice**. Each **@ExceptionHandler(SomeException.class)** method builds a consistent **error DTO** and returns a **ResponseEntity** with the right **status**, and a handler for **Exception.class** is the **fallback for 500**.",
+  hi:"Teen kaam: (1) custom exception class banao, (2) service mein throw karo, (3) ek GlobalExceptionHandler class mein har exception ke liye handler likho. Controller saaf rehta hai aur client ko hamesha ek jaisa JSON milta hai.",
+  code:`public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) { super(message); }
+}
+
+// Service
+public StudentResponseDTO getStudentById(Long id) {
+    Student student = studentRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Student with ID " + id + " not found"));
+    return mapToDTO(student);
+}
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleNotFound(
+            ResourceNotFoundException ex, HttpServletRequest request) {
+        ExceptionResponseDTO body = new ExceptionResponseDTO(
+            LocalDateTime.now(),
+            HttpStatus.NOT_FOUND.value(),
+            HttpStatus.NOT_FOUND.getReasonPhrase(),
+            ex.getMessage(),
+            request.getRequestURI());
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)   // 409 Conflict, same pattern
+    public ResponseEntity<ExceptionResponseDTO> handleDuplicate(
+            DuplicateResourceException ex, HttpServletRequest request) { /* ... */ return null; }
+
+    @ExceptionHandler(Exception.class)                    // fallback: 500
+    public ResponseEntity<ExceptionResponseDTO> handleGeneric(
+            Exception ex, HttpServletRequest request) {
+        // client ko generic message, asli error log mein
+        return null;
+    }
+}`,
+  table:{ head:["Exception","HTTP status"], rows:[["ResourceNotFoundException","404 Not Found"],["DuplicateResourceException","409 Conflict"],["MethodArgumentNotValidException","400 Bad Request"],["Exception (fallback)","500, generic message: Something went wrong"]] },
+  note:{t:"Error JSON ka format", x:"{ timestamp, status, error, message, path }. Isse frontend ko har error ek jaisa milta hai."},
+  ln:["excHandler"] },
+{ n:17, t:"role", q:"What is the difference between @ControllerAdvice and @RestControllerAdvice?",
+  en:"**@ControllerAdvice** is for traditional **MVC apps that render HTML or JSP views**. **@RestControllerAdvice** is for **REST APIs**: it is **@ControllerAdvice + @ResponseBody**, so returned objects are automatically **serialized to JSON**.",
+  hi:"Jaise @RestController = @Controller + @ResponseBody, waise hi @RestControllerAdvice = @ControllerAdvice + @ResponseBody.",
+  ln:["excHandler"] },
+{ n:18, t:"role", q:"How do you return field-wise validation errors with @Valid?",
+  en:"When **@Valid @RequestBody** fails, Spring throws **MethodArgumentNotValidException**. A handler reads **getBindingResult().getFieldErrors()** and builds a **Map<String, String>** of **field name to message** inside a **ValidationExceptionResponseDTO**, and returns **400 Bad Request**.",
+  hi:"DTO mein @NotBlank, @Email jaise rules lagao aur controller mein @Valid. Rules tootne par Spring exception phenkta hai, aur handler har galat field ka naam aur message JSON mein bhej deta hai.",
+  code:`@PostMapping
+public ResponseEntity<StudentResponseDTO> createStudent(@Valid @RequestBody StudentRequestDTO dto) {
+    return new ResponseEntity<>(studentService.createStudent(dto), HttpStatus.CREATED);
+}
+
+@ExceptionHandler(MethodArgumentNotValidException.class)
+public ResponseEntity<ValidationExceptionResponseDTO> handleValidation(
+        MethodArgumentNotValidException ex, HttpServletRequest request) {
+
+    Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult().getFieldErrors()
+      .forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+
+    ValidationExceptionResponseDTO body = new ValidationExceptionResponseDTO(
+        LocalDateTime.now(), 400, "Bad Request", "Validation Failed",
+        request.getRequestURI(), errors);
+    return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+}`,
+  note:{t:"Sample response", x:"{ status: 400, message: 'Validation Failed', fieldErrors: { name: 'Name cannot be null or empty', age: 'Student must be at least 18 years old', email: 'Student email must be valid' } }"},
+  ln:["excHandler"] },
+
+{ n:19, t:"jwt", q:"Why should configuration not be hardcoded in code?",
+  en:"The **business logic** is the same in every environment, but **configuration** (**DB URL, username, password, server.port, third-party API keys**) changes. Hardcoding it needs **frequent redeployments**, risks a **credential leak** when code is pushed to Git, and causes **tight coupling** between code and configuration.",
+  hi:"Controller, service aur repository har environment mein same hote hain. DB URL, password aur port badalte hain. Inhe code mein likhoge to har environment ke liye code badalna padega aur password GitHub par chala jaayega.",
+  table:{ head:["Environment","Matlab"], rows:[["Local","Developer ki apni machine (localhost:8080, local MySQL)"],["Dev","Development testing"],["QA / Staging / Pre-prod","Production jaisa setup, live jaane se pehle final testing"],["Prod","Live, asli users, secure credentials"]] },
+  ln:["extcfg"] },
+{ n:20, t:"jwt", q:"What is the difference between application.properties and application.yml?",
+  en:"**application.properties** uses a **flat key=value** format with dots, while **application.yml** uses a **hierarchical tree** with **indentation**. If both exist, **Spring Boot gives priority to application.properties**, and internally it **converts YAML into flat key-value pairs**. Values are injected with **@Value(\"${key}\")**, and lists and numbers are supported.",
+  hi:"Dono mein same cheez likhi jaati hai, bas style alag. YAML mein indentation (spaces) se parent-child banta hai, Python jaisa. Dono files ek saath ho to properties jeet jaati hai.",
+  code:`# application.properties
+server.port=9090
+app.welcome.message=Hello Welcome to My App
+app.welcome.users=Aditya,Rohit,Rohan,Sohan
+
+# application.yml
+server:
+  port: 9090
+app:
+  welcome:
+    message: "Hello Welcome to My App"
+    code: 200
+    users:
+      - Aditya
+      - Rohit
+
+// Java mein
+@Value("\${app.welcome.message}") private String message;
+@Value("\${app.welcome.code}")    private Integer code;
+@Value("\${app.welcome.users}")   private List<String> users;`,
+  note:{w:1, t:"Dhyan do", x:"YAML mein tab nahi, sirf spaces use hote hain. Galat indentation se property padhi hi nahi jaati."},
+  ln:["extcfg"] },
+{ n:21, t:"jwt", q:"What are Spring Boot Profiles, and how do you activate them?",
+  en:"**Profiles** give each environment its own configuration through files named **application-{profile}.properties** (for example **application-dev, application-staging, application-prod**). When a profile is active, Boot reads the **common application.properties plus the profile file**, and **profile-specific values override the common ones**. The **best way to activate** a profile is **externally**, through the **command line** or an **environment variable**, without changing any file.",
+  hi:"Common cheezein application.properties mein, environment ki alag cheezein (port, DB) apni profile file mein. Profile active karne ke liye file badalne ki jagah command line se bata do, to code ya file kabhi nahi badalti.",
+  table:{ head:["Tareeka","Command / setting","Kaisa hai"], rows:[["Internal","spring.profiles.active=dev (properties file mein)","Theek nahi, kyunki file badalni padti hai"],["Maven","mvn spring-boot:run -Dspring-boot.run.profiles=prod","Local run"],["JAR (arg)","java -jar app.jar --spring.profiles.active=prod","Best practice"],["JAR (JVM prop)","java -Dspring.profiles.active=prod -jar app.jar","Best practice"],["Environment variable","CI/CD, Docker, Kubernetes mein set","Best practice"]] },
+  code:`# application.properties (common)
+spring.application.name=profile-demo
+
+# application-dev.properties
+server.port=9090
+app.welcome.message=Dev Hello
+
+# application-prod.properties
+server.port=8191
+app.welcome.message=Prod Hello`,
+  ln:["profiles","extcfg"] },
+{ n:22, t:"jwt", q:"How does @Profile create different beans for different environments?",
+  en:"**@Profile** makes a bean **conditional on the active profile**. With a **NotificationService interface**, **NotificationServiceImpl** is annotated **@Profile(\"prod\")** and sends real SMS or email, while **DummyNotificationServiceImpl** is annotated **@Profile({\"dev\", \"default\", \"staging\"})** and only logs. The controller uses **constructor injection** of the interface, so Spring injects whichever bean exists for the active profile.",
+  hi:"Prod mein asli SMS jaana chahiye, dev mein paisa aur spam bachane ke liye dummy. Dono class same interface implement karti hain, @Profile se tay hota hai ki kaun si bean banegi. Koi profile active na ho to \"default\" profile chalti hai.",
+  fig:["profiles"],
+  code:`@Service
+@Profile("prod")
+public class NotificationServiceImpl implements NotificationService {
+    public String sendNotification() { return "Real Notification Sent Successfully!"; }
+}
+
+@Service
+@Profile({"dev", "default", "staging"})
+public class DummyNotificationServiceImpl implements NotificationService {
+    public String sendNotification() { return "Here is a Dummy Notification!"; }
+}
+
+@RestController
+@RequestMapping("/api/notification")
+public class NotificationController {
+    private final NotificationService notificationService;
+
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    @PostMapping
+    public ResponseEntity<String> send() {
+        return ResponseEntity.ok(notificationService.sendNotification());
+    }
+}`,
+  table:{ head:["Active profile","Files","Bean","Output"], rows:[["default (kuch nahi)","application.properties","Dummy","Dummy Notification, port 8080"],["dev","application.properties + application-dev.properties","Dummy","Dummy Notification, port 9090"],["prod","application.properties + application-prod.properties","NotificationServiceImpl","Real Notification, port 8191"]] },
+  ln:["profiles"] },
+
+{ n:23, t:"web", q:"What is a Filter, and where does it sit in the request flow?",
+  en:"A **Filter** (**jakarta.servlet.Filter**) runs at the **Servlet container level**, in Tomcat **before DispatcherServlet**. It receives the **raw request and response** and does not know which controller will handle the request, so it suits **global infrastructure tasks**: **logging, authentication, request ID generation, response header changes, response time measurement and static resources**.",
+  hi:"Filter Tomcat aur DispatcherServlet ke beech baitha chowkidaar hai. Har request pehle usse guzarti hai. Use ye nahi pata ki aage kaun sa controller chalega, isliye wo sab endpoints ke common kaam ke liye hai. Controller mein ye sab likhna SRP todta hai aur code duplicate hota hai.",
+  fig:["place"],
+  pts:["Controller mein logging ya auth likhna SRP ka violation hai.","50+ endpoints mein same code duplicate hota hai.","Helper class banao to bhi har method ko usse call karna padta hai, coupling bani rehti hai.","Filter ek jagah se sab endpoints cover karta hai."],
+  ln:["bootWeb","servletSpec"] },
+{ n:24, t:"web", q:"What are the Filter lifecycle methods, and how does FilterChain work?",
+  en:"**init(FilterConfig)** runs **once** at startup, **doFilter(request, response, chain)** runs on **every request**, and **destroy()** runs **once** at shutdown. Calling **chain.doFilter(request, response)** passes control to the **next filter**, or to **DispatcherServlet** if it is the last one. A filter **short-circuits** the request by writing a response (for example **401**) and **returning without calling chain.doFilter()**.",
+  hi:"doFilter ke andar do kaam hote hain: chain.doFilter se pehle (pre-processing) aur uske baad (post-processing). Auth fail ho to status 401 set karo aur return kar do, chain.doFilter mat bulao. Request controller tak jaayegi hi nahi.",
+  code:`@Component
+@Order(1)
+public class AuthenticationFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        String token = httpRequest.getHeader("token");
+        if (token == null || !"12345".equals(token)) {
+            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);   // 401
+            httpResponse.setContentType("application/json");
+            httpResponse.getWriter().write("Authentication Is Required");
+            return;                                   // short-circuit
+        }
+        chain.doFilter(request, response);            // aage jaane do
+    }
+}`,
+  note:{t:"Typecast kyun?", x:"ServletRequest aur ServletResponse generic hain (non-HTTP protocols ke liye). getHeader(), getMethod(), getRequestURI(), setStatus() jaise HTTP methods ke liye HttpServletRequest aur HttpServletResponse mein cast karna padta hai."},
+  ln:["servletSpec","bootWeb"] },
+{ n:25, t:"web", q:"How do you log requests and measure response time in a filter, and why set response headers before chain.doFilter()?",
+  en:"Record the **start time**, set headers such as **X-Request-ID**, call **chain.doFilter()** inside a **try block** and compute the **duration inside finally**, so the metrics run **even if a controller or service throws**. Response headers must be set **before chain.doFilter()**, because after downstream execution the response may be **committed and read-only**, and late headers will not reach the client.",
+  hi:"Controller response likhta hai to response commit ho jaata hai, uske baad header nahi badal sakte. Isliye header pehle. Aur time naapna try-finally mein, taaki exception aaye tab bhi log ban jaaye.",
+  code:`@Component
+@Order(2)
+public class LoggingFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        long startTime = System.currentTimeMillis();
+        httpResponse.setHeader("X-Request-ID", UUID.randomUUID().toString());   // pehle
+
+        System.out.println("Incoming: " + httpRequest.getMethod() + " " + httpRequest.getRequestURI());
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            long duration = System.currentTimeMillis() - startTime;
+            System.out.println("Status: " + httpResponse.getStatus() + ", Time: " + duration + " ms");
+        }
+    }
+}`,
+  ln:["bootWeb"] },
+{ n:26, t:"web", q:"How do you order filters and limit them to certain URLs?",
+  en:"Use **@Order(n)** on **@Component** filters: the **lower number runs first**, so **AuthenticationFilter @Order(1)** blocks unauthorised requests before **LoggingFilter @Order(2)**. Without **@Order** the sequence is **not guaranteed**. For URL-specific filters use **FilterRegistrationBean** with **setOrder()** and **addUrlPatterns(\"/api/*\")**, which also avoids annotating the class with **@Component**.",
+  hi:"Auth pehle chalega to unauthorised request pe logging ya business processing hoti hi nahi. @Order na lagao to order machine ke hisaab se badal sakta hai. Sirf /api/* par filter chalana ho to FilterRegistrationBean best hai.",
+  code:`@Configuration
+public class FilterConfig {
+
+    @Bean
+    public FilterRegistrationBean<DummyFilter> dummyFilterBean() {
+        FilterRegistrationBean<DummyFilter> bean = new FilterRegistrationBean<>();
+        bean.setFilter(new DummyFilter());
+        bean.setOrder(1);
+        bean.addUrlPatterns("/api/*", "/admin/*");
+        return bean;
+    }
+}`,
+  ln:["bootWeb"] },
+{ n:27, t:"web", q:"Can a filter modify the request or response? What is the IllegalStateException bug?",
+  en:"A filter can **add response headers**, **short-circuit** with a status and body, and even change the **response body** with **ContentCachingResponseWrapper** (call **resetBuffer()** and **copyBodyToResponse()**), but modifying the body is a **bad practice**, because the **Service and Controller** layers should own the response contract. **HttpServletRequest is read-only**: there is no **setHeader()** or **setParam()**. Reading the **request body** with **getReader()** or **getInputStream()** **consumes the stream**, so **Jackson later fails with IllegalStateException**.",
+  hi:"InputStream ek nadi jaisi hai: ek baar padh li to khali. Filter mein body log karne ke liye padhi to DispatcherServlet ke paas Jackson ko JSON padhne ko kuch bachta hi nahi aur 500 aata hai. Request ke headers aur params badalne ka option hi nahi diya gaya, kyunki client ka contract final hota hai.",
+  table:{ head:["Kaam","Possible?","Recommended?","Kaise"], rows:[["Response header add","Haan","Haan","response.setHeader() chain.doFilter se pehle"],["Request short-circuit","Haan","Haan","setStatus(401) aur return"],["Response body modify","Haan","Nahi (bad practice)","ContentCachingResponseWrapper + resetBuffer()"],["Request headers/params modify","Nahi","Nahi","Read-only"],["Request body read","Risky","Bug karta hai","Stream consume, IllegalStateException"],["URL pattern filtering","Haan","Haan","FilterRegistrationBean.addUrlPatterns()"],["Typecast-free filter","Haan","Best practice","extends OncePerRequestFilter"]] },
+  code:`// BUG: body padhne ke baad Jackson ko khali stream milti hai
+BufferedReader reader = httpRequest.getReader();
+StringBuilder body = new StringBuilder();
+String line;
+while ((line = reader.readLine()) != null) { body.append(line); }
+chain.doFilter(request, response);
+// java.lang.IllegalStateException: getReader() has already been called for this request`,
+  note:{t:"Extra (mera note)", x:"Agar body log karni hi ho to request ko ContentCachingRequestWrapper mein wrap karte hain, taaki stream dobara padhi ja sake. Tomcat body ko bytes isliye deta hai kyunki use nahi pata JSON hai, XML hai ya 2GB ki video."},
+  ln:["bootWeb"] },
+{ n:28, t:"web", q:"What is OncePerRequestFilter, and why use it?",
+  en:"**OncePerRequestFilter** is a **Spring abstract class** for filters. It needs **no manual typecasting** (**doFilterInternal** gives **HttpServletRequest and HttpServletResponse**), it **guarantees a single execution per request cycle**, and **shouldNotFilter()** gives a clean way to **skip specific URLs**.",
+  hi:"Servlet ke Filter interface mein cast karna padta hai aur ek hi request mein filter dobara chal sakta hai (forward ya error dispatch par). OncePerRequestFilter in dono se bachata hai.",
+  code:`@Component
+public class SpringDemoFilter extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        System.out.println("Executing Spring OncePerRequestFilter");
+        filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // /api/ se shuru na ho to filter mat chalao
+        return !request.getRequestURI().startsWith("/api/");
+    }
+}`,
+  ln:["bootWeb"] },
+{ n:29, t:"web", q:"What is the difference between a Filter and an Interceptor?",
+  en:"A **Filter** comes from the **Jakarta Servlet API** and runs **before DispatcherServlet**, with **raw request and response** and **no knowledge of the target controller**. A **HandlerInterceptor** comes from **Spring MVC** and runs **after DispatcherServlet has resolved the handler** and before the controller, so it has access to the **HandlerMethod** (controller class and method names).",
+  hi:"Filter Tomcat level ka hai, Interceptor Spring MVC level ka. Interceptor ke time tak DispatcherServlet ko pata chal chuka hota hai ki kaun sa controller method chalega, isliye wo method-specific logic kar sakta hai.",
+  fig:["place"],
+  table:{ head:["","Servlet Filter","Spring HandlerInterceptor"], rows:[["Source","Jakarta Servlet API","Spring MVC (org.springframework.web.servlet)"],["Kab chalta hai","DispatcherServlet se pehle","DispatcherServlet ke baad, controller se pehle"],["Handler ka pata","Nahi","Haan (HandlerMethod)"],["Methods","doFilter()","preHandle(), postHandle(), afterCompletion()"],["Use case","Global infra: logging, CORS, security, raw body wrapping","Controller-aware logic, fine-grained metrics, model tweaks"]] },
+  note:{t:"Best practice", x:"Global infrastructure ke liye Filter, controller ya endpoint metadata par depend karne wale kaam ke liye Interceptor. Production auth ke liye Spring Security."},
+  ln:["interceptors"] },
+{ n:30, t:"web", q:"Explain preHandle, postHandle and afterCompletion, and how to register an interceptor.",
+  en:"**preHandle()** runs **before the controller** and returns a **boolean**: **true** continues, **false short-circuits** the request. **postHandle()** runs **after the controller but before the view is rendered**, and its **ModelAndView is null for REST APIs**. **afterCompletion()** runs **after the whole request is finished**, receives any **Exception**, and is used for **timing, status logging and cleanup**. An interceptor must be **registered in a WebMvcConfigurer** using **addInterceptors()**, with **addPathPatterns, excludePathPatterns and order**.",
+  hi:"@Component lagana kaafi nahi, WebMvcConfigurer mein register bhi karna padta hai. preHandle mein start time rakho, afterCompletion mein total time nikalo. Role check fail ho to 403 likh kar false return karo.",
+  fig:["icept"],
+  code:`@Component
+public class LoggingInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        request.setAttribute("startTime", System.currentTimeMillis());
+        if (handler instanceof HandlerMethod handlerMethod) {
+            System.out.println("Controller: " + handlerMethod.getBeanType().getSimpleName());
+            System.out.println("Method: " + handlerMethod.getMethod().getName());
+        }
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+                                Object handler, Exception ex) {
+        long start = (Long) request.getAttribute("startTime");
+        System.out.println("Status: " + response.getStatus()
+                + ", Time: " + (System.currentTimeMillis() - start) + " ms");
+    }
+}
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    private final LoggingInterceptor loggingInterceptor;
+    private final AuthorizationInterceptor authInterceptor;
+
+    public WebConfig(LoggingInterceptor l, AuthorizationInterceptor a) {
+        this.loggingInterceptor = l;
+        this.authInterceptor = a;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns("/api/auth/login", "/api/public/**")
+                .order(1);
+        registry.addInterceptor(loggingInterceptor).addPathPatterns("/api/**").order(2);
+    }
+}`,
+  table:{ head:["Pattern","Match"], rows:[["/api/students","Sirf wahi exact path"],["/api/*","/api/ ke baad ek level"],["/api/**","/api/ ke neeche saare nested paths"]] },
+  note:{t:"Extra (mera note)", x:"Authorization interceptor mein role galat ho to status 403 Forbidden likh kar return false karo. Agar token hi na ho to 401 Unauthorized bhejna zyada sahi hai."},
+  ln:["interceptors"] },
+
+{ n:31, t:"prod", q:"What are cross-cutting concerns, and what are code scattering and code tangling?",
+  en:"**Business logic** is **vertical** (specific to a domain like Student, Payment or Order), while **infrastructure logic** such as **logging, security, execution time, caching and auditing** is **horizontal** and **cuts across** all domains. Mixing them causes **code scattering** (the same infra code repeated in hundreds of classes) and **code tangling** (several unrelated concerns inside one method).",
+  hi:"Service method ka asli kaam ek line ho sakta hai (repository.save). Uske aas-paas timer, logging, permission, caching ki 20 lines aa jaayein to padhna mushkil ho jaata hai. Wahi cheezein har class mein doharaana scattering hai, ek method mein sab ghul-mil jaana tangling.",
+  table:{ head:["Problem","Matlab"], rows:[["Code scattering","Logging ya timing ka code saikdon classes mein bikhra hua"],["Code tangling","Auth, timing, logging aur DB logic ek hi method mein uljhe hue"]] },
+  ln:["aop"] },
+{ n:32, t:"prod", q:"Why do helper classes, inheritance and the Decorator pattern fall short, and what is AOP?",
+  en:"A **helper class** still clutters the method and developers can forget to call it, and **inheritance** needs explicit **super.logStart()** calls. The **Decorator pattern** (a wrapper implementing the same interface and holding the target by composition) works, but needs **manual wrapper classes for every service** and complex chaining with **@Primary**. **Spring AOP (Aspect-Oriented Programming)** **generates these wrappers dynamically** as **proxies**, and answers three questions: **WHAT** logic to run, **WHERE** to apply it and **WHEN** to run it.",
+  hi:"Decorator ka idea sahi hai par har service ke liye haath se wrapper likhna bahut mehnat aur galti ka kaam hai. AOP wahi wrapper Spring runtime par khud bana deta hai.",
+  fig:["aopproxy"],
+  table:{ head:["Sawaal","Matlab","Example"], rows:[["WHAT","Kaun sa logic","Logging, timing, security"],["WHERE","Kahan lagega","Saari service classes"],["WHEN","Kab chalega","Method se pehle, baad mein, ya around"]] },
+  code:`@Component
+@Primary   // controller mein IMPL ki jagah yeh inject hota hai
+public class LoggingDecorator implements StudentService {
+    private final StudentServiceIMPL studentServiceIMPL;
+
+    public LoggingDecorator(StudentServiceIMPL studentServiceIMPL) {
+        this.studentServiceIMPL = studentServiceIMPL;
+    }
+
+    @Override
+    public void createStudent(Student student) {
+        LoggingServiceUtil.logStart("StudentServiceIMPL", "createStudent");
+        studentServiceIMPL.createStudent(student);          // asli business logic
+        LoggingServiceUtil.logEnd("StudentServiceIMPL", "createStudent");
+    }
+}`,
+  note:{t:"OOP vs AOP", x:"OOP business domain (Student, Payment, Order) par focus karta hai. AOP cross-cutting infrastructure (logging, security, timing) par."},
+  ln:["aop"] },
+{ n:33, t:"prod", q:"Filters vs Interceptors vs AOP: what does each wrap?",
+  en:"**Filters** wrap the **raw incoming HTTP request** at the **Servlet container level**. **Interceptors** wrap **controller calls** at the **Spring MVC level**. **AOP** wraps **any Spring bean method** across the whole application: **services, repositories, helpers and utilities**.",
+  hi:"Teeno ek hi sawaal ke alag level hain. Filter sabse bahar (HTTP), Interceptor controller ke aas-paas, AOP andar kisi bhi bean ke method par.",
+  fig:["place"],
+  table:{ head:["","Filter","Interceptor","AOP"], rows:[["Level","Servlet container","Spring MVC","Poora Spring application"],["Kya wrap karta hai","Raw HTTP request","Controller","Koi bhi bean ka method"],["Kab","DispatcherServlet se pehle","Controller se pehle aur baad","Method ke pehle, baad ya around"]] },
+  ln:["aop","interceptors"] },
+{ n:34, t:"prod", q:"Does Spring AOP use the Decorator pattern or the Proxy pattern?",
+  en:"Structurally, **UML and class structure** of both are almost identical. The difference is **intent**: **Decorator adds new behaviour** to a class, while **Proxy controls access and lifecycle**. Spring internally calls it a **Proxy**, but since we use it to **add logging and security features**, calling it a **Decorator or Proxy** are both acceptable.",
+  hi:"Class structure dono ka same hai: wrapper jo same type ka hai aur asli object ko pakde hai. Farak irade ka hai. Spring is wrapper ko Proxy kehta hai.",
+  note:{t:"Interview line", x:"'Spring AOP is implemented with dynamic proxies. The structure is the same as Decorator, and the intent here is to add cross-cutting behaviour.'"},
+  ln:["aop","aopProxy"] },
+{ n:35, t:"prod", q:"What are the AOP terms, and what are the 5 advice types?",
+  en:"A **Target object** is the real service, a **Proxy** is the object Spring creates around it, an **Aspect** is a class with **@Aspect** and **@Component** holding the cross-cutting logic, a **Pointcut** says **where** to apply it, an **Advice** says **when and what** to run, and a **JoinPoint** is the method execution point with its **metadata and arguments**. The five advice types are **@Before, @AfterReturning, @AfterThrowing, @After and @Around**.",
+  hi:"Try-catch-finally se samjho. @Before try ke andar method se pehle. @AfterReturning method safal return kare to. @AfterThrowing exception aaye to. @After finally ki tarah hamesha. @Around in sabko ghera hua hai.",
+  fig:["advice"],
+  table:{ head:["Advice","Kab chalta hai","Success par","Exception par","Args badal sakta","Return badal sakta","Exception suppress"], rows:[["@Before","Method se pehle","Haan","N/A","Nahi","Nahi","Nahi (throw karke rok sakta)"],["@AfterReturning","Safal return par","Haan","Nahi","Nahi","Nahi","Nahi"],["@AfterThrowing","Exception par","Nahi","Haan","Nahi","Nahi","Nahi"],["@After","Hamesha (finally)","Haan","Haan","Nahi","Nahi","Nahi"],["@Around","Poore method ko gher kar","Haan","Haan","Haan (proceed(args))","Haan","Haan"]] },
+  code:`@Aspect
+@Component
+public class LoggingAspect {
+
+    @Before("execution(* in.codearmy.service.StudentService.createStudent(..))")
+    public void logBefore(JoinPoint joinPoint) {
+        System.out.println("A student is going to be saved...");
+        Object[] args = joinPoint.getArgs();   // sirf padh sakte ho
+    }
+
+    @AfterReturning(pointcut = "execution(* in.codearmy.service.StudentService.*(..))", returning = "result")
+    public void logAfterReturning(JoinPoint joinPoint, Object result) {
+        System.out.println("Returned: " + result);
+    }
+
+    @AfterThrowing(pointcut = "execution(* in.codearmy.service.StudentService.*(..))", throwing = "ex")
+    public void logAfterThrowing(Exception ex) {
+        System.out.println("Exception: " + ex.getMessage());
+    }
+
+    @After("execution(* in.codearmy.service.StudentService.*(..))")
+    public void logAfter() {
+        System.out.println("Completed (success ya exception).");
+    }
+}`,
+  note:{t:"Dhyan do", x:"@Before se return likhne se target method nahi rukta. Rokna ho to @Before ke andar exception throw karo. @AfterThrowing exception ko nahi rok sakta, wo aage client tak jaati hai, isliye iska use sirf logging aur monitoring ke liye hai."},
+  ln:["aopAdvice"] },
+{ n:36, t:"prod", q:"Why is @Around the most powerful advice, and how do you use ProceedingJoinPoint?",
+  en:"**@Around** wraps the **whole target method**, and **ProceedingJoinPoint.proceed()** decides **whether, when and how** the target runs. It can run logic **before and after**, **modify arguments** with **proceed(newArgs)**, **replace the return value**, **consume exceptions** with try-catch, and call the target **zero, one or many times**.",
+  hi:"Baaki advice sirf ek point par chalte hain. Around mein proceed() tumhare haath mein hai, to tum method chalao ya mat chalao, argument badlo, result badlo ya exception rok lo.",
+  code:`@Aspect
+@Component
+public class PerformanceAspect {
+
+    @Around("execution(* in.codearmy.service.StudentService.*(..))")
+    public Object measureExecutionTime(ProceedingJoinPoint pjp) throws Throwable {
+        long start = System.currentTimeMillis();
+        System.out.println("Starting: " + pjp.getSignature().getName());
+        try {
+            Object result = pjp.proceed();                 // target method
+            System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
+            return result;                                 // ya badla hua result
+        } catch (Throwable ex) {
+            System.out.println("Failed: " + ex.getMessage());
+            throw ex;                                      // ya consume kar lo
+        } finally {
+            System.out.println("Completed.");
+        }
+    }
+}`,
+  note:{w:1, t:"Dhyan do", x:"@Around mein result return karna mat bhoolo. Agar return nahi kiya to caller ko null milega."},
+  ln:["aopAdvice"] },
+{ n:37, t:"prod", q:"How do pointcut expressions and wildcards work?",
+  en:"An **execution()** pointcut has the form **execution(access_modifier? return_type package.class.method(parameters) throws?)**. The **return type, class path and parameter list** are mandatory, while the **access modifier and throws** are optional. The **star (*)** matches **any single element** (return type, class, method or parameter), and **dot-dot (..)** matches **zero or more** (parameters or sub-packages).",
+  hi:"Exact path likhoge to har method ke liye alag aspect likhna padega. * ek cheez ke liye, .. kai cheezon ke liye. Jaise com.service..*.*(..) matlab com.service aur uske saare sub-packages ki saari classes ke saare methods.",
+  table:{ head:["Expression","Kya match karta hai"], rows:[["execution(public String com.service.StudentService.getStudent(String))","Bilkul ek exact method"],["execution(* com.service.StudentService.getStudent(..))","getStudent, koi bhi return type, koi bhi parameters"],["execution(* com.service.StudentService.get*(..))","get se shuru hone wale saare methods"],["execution(* com.service.*.*(..))","com.service package ki saari classes"],["execution(* com.service..*.*(..))","com.service aur saare sub-packages"]] },
+  code:`// BAD: poori JVM aur Boot ke internal beans bhi proxy karne ki koshish
+@Before("execution(* *(..))")     // BeanCreationException startup par
+
+// GOOD: sirf apne application package tak
+@Before("execution(* in.codearmy.aopdemo..*.*(..))")`,
+  note:{w:1, t:"Dhyan do", x:"Bahut broad pointcut Boot ke internal beans (jaise TomcatServletWebServerFactory) ko bhi CGLIB se proxy karne ki koshish karta hai, jo possible nahi hota, aur app startup par BeanCreationException ke saath fail ho jaata hai. Hamesha apne base package tak limit rakho."},
+  ln:["aopPointcut"] },
+{ n:38, t:"prod", q:"What are the pointcut designators: execution, within, @annotation, bean, @within vs @target, args vs @args?",
+  en:"**execution()** matches **method signatures**, **within()** matches **all methods in a class or package**, **@annotation()** matches **methods carrying an annotation**, and **bean()** matches **a Spring bean by name**. **@within** checks where the method is **declared at compile time**, while **@target** checks the **runtime object type**. **args(Type)** matches methods **accepting that type**, and **@args(Annotation)** matches arguments whose **class has that annotation**.",
+  hi:"@within vs @target ka farak inheritance mein dikhta hai. StudentService extends BaseService, aur save() BaseService mein likha hai (jis par @Service nahi). @within us save() ko nahi pakdega, @target pakdega kyunki runtime object StudentService hai jis par @Service hai.",
+  table:{ head:["Designator","Level","Kya match karta hai","Example"], rows:[["execution()","Method","Method signature","execution(* com.service..*.*(..))"],["within()","Class / package","Class ya package ke saare methods","within(com.service.StudentService)"],["@annotation()","Method","Us annotation wale methods","@annotation(in.codearmy.annotation.TrackTime)"],["bean()","Bean name","Us bean ke saare methods","bean(studentService)"],["@within / @target","Class annotation","Annotated class (declared vs runtime type)","@within(org.springframework.stereotype.Service)"],["args() / @args()","Argument","Argument ka type / argument class ki annotation","args(in.codearmy.dto.Student)"]] },
+  note:{t:"Dhyan do", x:"args() ko hamesha within() ke saath combine karo, warna wo Spring ke internal classes ko bhi match kar sakta hai."},
+  ln:["aopPointcut"] },
+{ n:39, t:"prod", q:"How do you centralise pointcuts with @Pointcut?",
+  en:"Instead of hardcoding expression strings in every advice, define **named pointcuts** with **@Pointcut** on **empty method stubs** in one class (for example **ApplicationPointcuts**) and **combine them with logical operators** such as **&&**. Advices then **refer to them by fully qualified method name**.",
+  hi:"Ek jagah naam de do (serviceLayer, publicMethods) aur jahan zarurat ho wahan naam se use karo. Pointcut badalna ho to sirf ek jagah badalna padega.",
+  code:`public class ApplicationPointcuts {
+
+    @Pointcut("within(in.codearmy.controller..*)")
+    public void controllerLayer() {}
+
+    @Pointcut("within(in.codearmy.service..*)")
+    public void serviceLayer() {}
+
+    @Pointcut("execution(public * *(..))")
+    public void publicMethods() {}
+
+    @Pointcut("serviceLayer() && publicMethods()")
+    public void publicServiceMethods() {}
+}
+
+@Aspect
+@Component
+public class LoggingAspect {
+    @Before("in.codearmy.aspect.ApplicationPointcuts.publicServiceMethods()")
+    public void logPublicService(JoinPoint joinPoint) {
+        System.out.println("Executing: " + joinPoint.getSignature().getName());
+    }
+}`,
+  ln:["aopPointcut"] },
+{ n:40, t:"prod", q:"What is the difference between CGLIB and JDK dynamic proxies, and between this() and target()?",
+  en:"**CGLIB** (the **default in Spring Boot**) creates the proxy by **subclassing the target class**, so the proxy **is-a target class**. A **JDK dynamic proxy** **implements the target's interface**, so the proxy **is-a interface, not the target class**. **target(Type)** matches the **actual target object**, while **this(Type)** matches the **proxy object**, so with a JDK proxy **this(StudentService)** **fails** but **target(StudentService)** still matches.",
+  hi:"CGLIB class ka subclass banata hai, JDK proxy interface implement karta hai. JDK proxy ko concrete class type par cast nahi kar sakte, isliye this() usse match nahi karta.",
+  fig:["proxytypes"],
+  table:{ head:["Proxy type","target(StudentService)","this(StudentService)"], rows:[["CGLIB","Match","Match (proxy extends StudentService)"],["JDK dynamic proxy","Match","Fail (proxy sirf interface implement karta hai)"]] },
+  code:`# JDK dynamic proxy force karne ke liye (jab interface ho)
+spring.aop.proxy-target-class=false`,
+  note:{t:"Extra (mera note)", x:"AOP ki ek famous limitation: ek hi class ke andar this.method() se call karoge to proxy bypass ho jaata hai aur advice nahi chalta. Ye @Transactional par bhi lagu hota hai."},
+  ln:["aopProxy"] },
+{ n:41, t:"prod", q:"How do you create a custom annotation for AOP: @interface, @Target, @Retention?",
+  en:"A custom annotation is declared with **@interface**. **@Target(ElementType.METHOD)** limits where it can be used, **@Retention(RetentionPolicy.RUNTIME)** keeps it available at **runtime**, which is **required for AOP** because Spring inspects beans at runtime, and **@Documented** includes it in **Javadoc**. A **marker annotation** has no attributes, a **configured annotation** has attributes with defaults.",
+  hi:"Package aur method signature likhne ki jagah method par bas @TrackExecutionTime laga do. Aspect use dhoondh kar infra logic chala dega. Retention RUNTIME na ho to Spring annotation dekh hi nahi paayega.",
+  table:{ head:["Retention","Kitni der rehta hai"], rows:[["SOURCE","Sirf source code mein (@Override)"],["CLASS","Bytecode mein, par runtime par JVM load nahi karta"],["RUNTIME","Runtime par available (AOP ke liye zaruri)"]] },
+  code:`@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TrackExecutionTime {
+    long warnAfter() default 2000;     // milliseconds
+    String operation() default "";
+}`,
+  note:{t:"Yaad rakho", x:"@Target na lagao to annotation class, method, field sab par lag sakti hai. ElementType.TYPE class ya interface ke liye, METHOD method ke liye, FIELD aur PARAMETER apne jagah ke liye."},
+  ln:["aopPointcut"] },
+{ n:42, t:"prod", q:"How do you read custom annotation attributes in an aspect (parameter binding form)?",
+  en:"In the **type matching form**, you write the annotation's **fully qualified class name** in **@annotation(...)**. In the recommended **parameter binding form**, you write **@annotation(paramName)** and add a **parameter of the annotation type** to the advice method, with the **same name**, so you can read attributes like **warnAfter()** and **operation()** directly.",
+  hi:"Binding form mein annotation ka object advice method ke parameter mein mil jaata hai, to uski settings (threshold, naam) seedha padh sakte ho. Parameter ka naam aur @annotation() ke andar ka naam bilkul same hona chahiye.",
+  code:`@Aspect
+@Component
+public class PerformanceAspect {
+
+    @Around("@annotation(trackExecutionTime)")      // binding form
+    public Object measureExecutionTime(ProceedingJoinPoint pjp,
+                                       TrackExecutionTime trackExecutionTime) throws Throwable {
+        long start = System.currentTimeMillis();
+        try {
+            return pjp.proceed();
+        } finally {
+            long duration = System.currentTimeMillis() - start;
+            String operation = trackExecutionTime.operation();
+            if (operation.isBlank()) operation = pjp.getSignature().getName();
+
+            if (duration >= trackExecutionTime.warnAfter()) {
+                System.out.println("SLOW OPERATION ALERT! " + operation + ": " + duration + " ms");
+            } else {
+                System.out.println("Time taken by " + operation + ": " + duration + " ms");
+            }
+        }
+    }
+}
+
+@Service
+public class StudentService {
+    @TrackExecutionTime(warnAfter = 1500, operation = "Get Student Data")
+    public String getStudent(String data) { /* ... */ return "All Student Data"; }
+}`,
+  note:{t:"Dhyan do", x:"Return value preserve karne ke liye pjp.proceed() ka result return karo. Try-finally isliye ki target exception phenke tab bhi time log ho."},
+  ln:["aopAdvice"] },
+{ n:43, t:"prod", q:"When and how is the AOP proxy created? What is BeanPostProcessor?",
+  en:"A **BeanPostProcessor** has **postProcessBeforeInitialization** and **postProcessAfterInitialization** callbacks. After the bean is **instantiated, injected and initialized (@PostConstruct)**, **postProcessAfterInitialization** checks whether any **aspect pointcut matches** the bean. If **yes**, it **replaces the original bean with a CGLIB or JDK proxy** in the **ApplicationContext**, so anything that **autowires** the bean receives the **proxy**. If **no**, the original bean stays.",
+  hi:"Proxy bean ke initialize hone ke baad, BeanPostProcessor ke step mein banta hai. Controller mein StudentService autowire hoti hai to use asli object nahi, proxy milta hai, isliye har call aspect se hokar guzarti hai.",
+  fig:["bpp"],
+  steps:["BeanDefinitions padhe jaate hain.","Bean instantiate hota hai (target object).","Dependencies inject hoti hain.","Initialization callbacks (@PostConstruct) chalte hain.","BeanPostProcessor.postProcessAfterInitialization chalta hai aur aspects check karta hai.","Match mila to proxy bean ban kar container mein asli bean ki jagah aa jaata hai."],
+  note:{t:"Performance", x:"Startup par hi Spring saare aspects aur pointcuts scan karke ek efficient Method-to-Pointcut mapping bana leta hai, isliye runtime par har call par saare aspects search nahi karne padte."},
+  ln:["bpp","aopProxy"] }
+];
+
+var PRACTICE = [
+ ["Filter mein request body log kiya, controller 500 de raha hai","getReader() ya getInputStream() ne stream consume kar li, Jackson ko khali mili. IllegalStateException. ContentCachingRequestWrapper use karo ya body filter mein padho hi mat."],
+ ["Filter se response header set kiya par client ko nahi mila","Header chain.doFilter() ke baad set kiya hoga. Response tab tak commit ho chuka hota hai. Header chain.doFilter() se pehle set karo."],
+ ["Auth fail hone par request controller tak nahi jaani chahiye","Filter mein status 401 set karo aur chain.doFilter() bulaye bina return karo (short-circuit). Interceptor mein preHandle se false return karo."],
+ ["Filter ka order galat chal raha hai","@Order lagao: chhota number pehle chalta hai (Auth @Order(1), Logging @Order(2)). Bina @Order ke sequence guaranteed nahi."],
+ ["Aspect ka advice nahi chal raha","Same class ke andar this.method() proxy bypass karta hai. Ya bean Spring-managed nahi hai, ya pointcut match nahi kar raha. Ya @Retention RUNTIME nahi hai."],
+ ["execution(* *(..)) lagate hi app start nahi hui","Pointcut bahut broad hai, Boot ke internal beans bhi proxy karne ki koshish hui aur BeanCreationException aaya. Apne base package tak limit karo."],
+ ["Exception ko aspect mein rokna hai (consume)","@AfterThrowing nahi rok sakta. @Around mein pjp.proceed() ko try-catch mein rakho."],
+ ["Dev mein dummy SMS aur prod mein real SMS kaise?","Do implementation, ek par @Profile(\"prod\"), doosri par @Profile({\"dev\", \"default\"}). Profile command line se activate karo."]
+];
+
+var CHECK = ["java.net ki dikkatein aur Servlet container ka role","Tomcat request flow: HttpServletRequest aur Response","Servlet lifecycle: init, service, destroy","Embedded vs external Tomcat, JAR vs WAR, scope provided","DispatcherServlet, HandlerMapping, HandlerAdapter flow","Spring MVC vs Spring Boot","@Controller vs @RestController","HTTP status code families","REST endpoint naming (noun plus verb)","@RestControllerAdvice aur @ExceptionHandler","@Valid aur MethodArgumentNotValidException","properties vs yml","Profiles: files aur activation tareeke","@Profile se beans","Filter lifecycle aur short-circuit","Header chain.doFilter se pehle kyun","Request body read karne ka IllegalStateException bug","OncePerRequestFilter","Filter vs Interceptor","preHandle, postHandle, afterCompletion","Scattering vs tangling","5 advice types aur @Around","Pointcut wildcards aur designators","CGLIB vs JDK proxy","Custom annotation: @Target, @Retention","BeanPostProcessor se proxy creation"];
+
+var LINKROWS = [
+ ["core","Servlets aur Tomcat","1-6",["servletSpec","tomcat"]],
+ ["auth","Spring MVC aur DispatcherServlet","7-11",["mvc","dispatcher"]],
+ ["role","Exception handling aur status codes","12-18",["excHandler","mdnStatus"]],
+ ["jwt","Profiles aur externalized config","19-22",["profiles","extcfg"]],
+ ["web","Filters","23-28",["bootWeb","servletSpec"]],
+ ["web","Interceptors","29, 30",["interceptors"]],
+ ["prod","AOP basics aur advice","31-36",["aop","aopAdvice"]],
+ ["prod","Pointcuts aur proxies","37-40",["aopPointcut","aopProxy"]],
+ ["prod","Custom annotations aur BeanPostProcessor","41-43",["aopPointcut","bpp"]]
+];
+
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function rich(text) {
+  var p = el("p");
+  text.split("**").forEach(function (part, i) { if (!part) return; if (i % 2) p.appendChild(el("strong", null, part)); else p.appendChild(document.createTextNode(part)); });
+  return p;
+}
+function pad(n) { return "Q" + n; }
+
+
+/* diagrams */
+function bx(x, y, w, h, cls, lines, tc) {
+  var cx = x + w / 2, lh = 15, y0 = y + h / 2 - (lines.length - 1) * lh / 2 + 4.5;
+  var o = '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="8"/>';
+  lines.forEach(function (t, i) { o += '<text x="' + cx + '" y="' + (y0 + i * lh) + '" text-anchor="middle"' + (tc ? ' class="' + tc + '"' : '') + '>' + t + '</text>'; });
+  return o;
+}
+function ar(x1, y1, x2, y2, k) {
+  var c = k === "r" ? "redln" : k === "g" ? "grnln" : "ln", m = k === "r" ? "ahr" : k === "g" ? "ahg" : "ah";
+  return '<line class="' + c + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" marker-end="url(#' + m + ')"/>';
+}
+function tx(x, y, t, anchor, cls) { return '<text x="' + x + '" y="' + y + '" text-anchor="' + anchor + '"' + (cls ? ' class="' + cls + '"' : '') + '>' + t + '</text>'; }
+function sv(w, h, cap, inner) { return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + cap + '">' + inner + '</svg>'; }
+function sw(x, y, cls) { return '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="14" height="14" rx="3"/>'; }
+
+var FIGS = {};
+function stack(items, x, w, step, h) {
+  var o = "";
+  items.forEach(function (s, i) {
+    o += bx(x, 6 + i * step, w, h, s[0], [s[1]], s[0] === "grnbox" ? "grn" : null);
+    if (i < items.length - 1) o += ar(x + w / 2, 6 + i * step + h, x + w / 2, 6 + (i + 1) * step);
+  });
+  return o;
+}
+(function () {
+  var c;
+
+  c = "Tomcat raw request ko parse karke HttpServletRequest banata hai, khali HttpServletResponse banata hai, aur dono sahi servlet ko de deta hai.";
+  FIGS.tomcat = { cap: c, svg: sv(640, 176, c,
+    bx(8, 36, 130, 56, "plain", ["Client", "browser, Postman"]) + ar(138, 64, 178, 64) +
+    bx(178, 36, 150, 56, "k-core", ["Tomcat (port 8080)", "parse, threads"]) + ar(328, 64, 368, 64) +
+    bx(368, 36, 130, 56, "k-prod", ["HelloServlet", "doGet / doPost"]) +
+    tx(253, 122, "Request object + khali Response object banata hai", "middle", "sm") +
+    tx(253, 146, "Servlet response mein likhta hai, Tomcat use client ko bhejta hai", "middle", "sm")) };
+
+  c = "Servlet ka object pehli request par banta hai, init ek baar chalta hai, service har request par, aur destroy shutdown par ek baar.";
+  FIGS.svlife = { cap: c, svg: sv(640, 176, c, stack([
+    ["box", "Constructor: pehli request par (lazy initialization)"],
+    ["k-auth", "init(ServletConfig): sirf ek baar"],
+    ["k-web", "service(): har request par, phir doGet / doPost / doPut / doDelete"],
+    ["box", "destroy(): shutdown ya undeploy par, sirf ek baar"]
+  ], 90, 460, 44, 30)) };
+
+  c = "Tomcat request DispatcherServlet ko deta hai. Wo HandlerMapping se controller dhoondhta hai aur HandlerAdapter se use chalata hai.";
+  FIGS.mvcflow = { cap: c, svg: sv(640, 284, c,
+    bx(8, 10, 100, 40, "plain", ["Client"]) + ar(108, 30, 150, 30) +
+    bx(150, 10, 120, 40, "k-core", ["Tomcat", "8080"]) + ar(270, 30, 330, 30) +
+    bx(330, 10, 190, 40, "k-web", ["DispatcherServlet", "Front Controller"]) +
+    ar(400, 50, 290, 110) + ar(450, 50, 470, 110) +
+    bx(200, 110, 150, 46, "box", ["HandlerMapping", "URL se controller"]) +
+    bx(380, 110, 190, 46, "box", ["HandlerAdapter", "method invoke karta hai"]) +
+    ar(475, 156, 400, 200) +
+    bx(300, 200, 170, 44, "k-prod", ["Controller", "@RestController"]) +
+    tx(8, 140, "Startup par mapping", "start", "sm") + tx(8, 158, "table ban jaati hai", "start", "sm") +
+    tx(8, 274, "Return: JSON (Jackson) ya view name (ViewResolver)", "start", "sm")) };
+
+  c = "Upar happy flow, neeche exception flow: service exception phenkti hai aur Global Exception Handler seedha client ko JSON error bhej deta hai.";
+  FIGS.excflow = { cap: c, svg: sv(640, 216, c,
+    bx(8, 10, 130, 40, "plain", ["Client"]) + ar(138, 30, 168, 30) +
+    bx(168, 10, 130, 40, "k-web", ["Controller"]) + ar(298, 30, 328, 30) +
+    bx(328, 10, 130, 40, "k-jwt", ["Service"]) + ar(458, 30, 488, 30) +
+    bx(488, 10, 130, 40, "k-auth", ["Repository"]) +
+    tx(8, 74, "Happy flow: response isi raaste se wapas jaata hai", "start", "sm grn") +
+    bx(368, 110, 130, 46, "redbox", ["Service", "exception throw"], "red") + ar(368, 133, 318, 133, "r") +
+    bx(168, 110, 150, 46, "k-web", ["Global Exception", "Handler"]) + ar(168, 133, 138, 133) +
+    bx(8, 110, 130, 46, "plain", ["Client", "JSON error"]) +
+    tx(8, 94, "Exception flow", "start", "sm red") +
+    tx(320, 196, "Controller mein if-else nahi, handler seedha client ko JSON bhejta hai", "middle", "sm")) };
+
+  c = "Interface ek, implementations do. Active profile tay karta hai ki Spring kaun si bean banata hai.";
+  FIGS.profiles = { cap: c, svg: sv(640, 196, c,
+    bx(220, 6, 200, 44, "k-auth", ["NotificationService", "(interface)"]) +
+    ar(160, 100, 290, 50) + ar(480, 100, 350, 50) +
+    bx(30, 100, 260, 58, "grnbox", ["NotificationServiceImpl", "@Profile(prod)", "real SMS / Email"], "grn") +
+    bx(350, 100, 260, 58, "box", ["DummyNotificationServiceImpl", "@Profile(dev, default, staging)", "sirf console log"]) +
+    tx(160, 182, "prod profile active ho tab", "middle", "sm grn") +
+    tx(480, 182, "dev, staging ya koi profile nahi", "middle", "sm")) };
+
+  c = "Filter sabse bahar (Tomcat level), Interceptor DispatcherServlet ke baad controller se pehle, aur AOP proxy kisi bhi Spring bean ke method ko gher sakta hai.";
+  FIGS.place = { cap: c, svg: sv(640, 286, c, stack([
+    ["plain", "Client / Postman"],
+    ["k-web", "Servlet Filter chain (Filter 1, Filter 2)"],
+    ["k-core", "DispatcherServlet"],
+    ["k-jwt", "Interceptor chain (preHandle ... afterCompletion)"],
+    ["box", "Controller"],
+    ["k-prod", "Service (AOP proxy yahan lag sakta hai)"],
+    ["k-auth", "Repository"]
+  ], 130, 340, 40, 28) +
+    tx(480, 66, "Filter: Servlet level", "start", "sm") +
+    tx(480, 146, "Interceptor: MVC level", "start", "sm") +
+    tx(480, 226, "AOP: koi bhi bean", "start", "sm")) };
+
+  c = "preHandle controller se pehle, postHandle controller ke baad view se pehle, afterCompletion sab khatam hone ke baad. preHandle false de to chain wahin ruk jaati hai.";
+  FIGS.icept = { cap: c, svg: sv(640, 264, c, stack([
+    ["box", "1. HandlerMapping controller method dhoondhta hai"],
+    ["k-jwt", "2. preHandle(): true to aage, false to request ruk jaati hai"],
+    ["k-prod", "3. Controller method chalta hai"],
+    ["k-jwt", "4. postHandle(): view render se pehle (REST mein null)"],
+    ["box", "5. View render ya JSON write"],
+    ["k-jwt", "6. afterCompletion(): sab ke baad, exception bhi milta hai"]
+  ], 90, 460, 44, 30)) };
+
+  c = "Controller ko asli StudentService nahi, Spring ka proxy milta hai. Proxy aspect ka logic chalata hai aur phir asli method ko call karta hai.";
+  FIGS.aopproxy = { cap: c, svg: sv(640, 166, c,
+    bx(8, 40, 150, 60, "plain", ["Controller", "autowire karta hai"]) + ar(158, 70, 245, 70) +
+    bx(245, 30, 160, 80, "k-prod", ["Proxy (Spring)", "@Before / @Around", "logging, timing"]) + ar(405, 70, 492, 70) +
+    tx(448, 62, "proceed()", "middle", "sm") +
+    bx(492, 40, 140, 60, "box", ["Target", "StudentService", "business logic"]) +
+    tx(320, 142, "Aspect ka kaam proxy karta hai, service class mein sirf business logic rehta hai", "middle", "sm")) };
+
+  c = "@Around poore try-catch-finally ko gherta hai. Beech mein Before, target, phir success par AfterReturning, exception par AfterThrowing, aur dono ke baad After.";
+  FIGS.advice = { cap: c, svg: sv(640, 202, c,
+    '<rect class="plain" x="8" y="6" width="624" height="190" rx="10"/>' +
+    tx(20, 26, "@Around poore ko gherta hai, proceed() tumhare haath mein", "start", "sm") +
+    bx(30, 56, 120, 40, "k-auth", ["@Before"]) + ar(150, 76, 180, 76) +
+    bx(180, 56, 150, 40, "box", ["Target method", "proceed()"]) +
+    ar(330, 68, 400, 52, "g") + ar(330, 84, 400, 100, "r") +
+    bx(400, 36, 150, 34, "grnbox", ["@AfterReturning"], "grn") +
+    bx(400, 84, 150, 34, "redbox", ["@AfterThrowing"], "red") +
+    tx(362, 50, "success", "middle", "sm grn") + tx(362, 112, "exception", "middle", "sm red") +
+    '<line class="ln" x1="550" y1="53" x2="596" y2="53"/><line class="ln" x1="596" y1="53" x2="596" y2="156"/>' + ar(596, 156, 550, 156) +
+    ar(475, 118, 475, 140) +
+    bx(180, 140, 370, 34, "k-jwt", ["@After: finally jaisa, dono raaste ke baad"])) };
+
+  c = "CGLIB target class ka subclass banata hai. JDK proxy sirf interface implement karta hai, isliye wo target class ka type nahi hota.";
+  FIGS.proxytypes = { cap: c, svg: sv(640, 188, c,
+    bx(60, 10, 180, 40, "box", ["StudentService", "(class)"]) +
+    bx(60, 100, 180, 40, "k-prod", ["CGLIB Proxy", "extends StudentService"]) + ar(150, 100, 150, 50) + tx(160, 80, "extends", "start", "sm") +
+    '<line class="ln" x1="320" y1="10" x2="320" y2="170"/>' +
+    bx(400, 10, 180, 40, "k-auth", ["StudentServiceInterface"]) +
+    bx(350, 100, 120, 40, "box", ["StudentService"]) + bx(500, 100, 130, 40, "k-prod", ["JDK Proxy"]) +
+    ar(410, 100, 450, 50) + ar(565, 100, 540, 50) + tx(432, 82, "implements", "middle", "sm") +
+    tx(150, 170, "CGLIB: proxy IS-A target class", "middle", "sm") +
+    tx(490, 170, "JDK: proxy IS-A interface, target class nahi", "middle", "sm")) };
+
+  c = "Bean ke initialize hone ke baad BeanPostProcessor aspects check karta hai. Match mila to asli bean ki jagah proxy container mein aa jaata hai.";
+  FIGS.bpp = { cap: c, svg: sv(640, 264, c, stack([
+    ["box", "1. BeanDefinitions padhe jaate hain"],
+    ["box", "2. Bean instantiate hota hai (target object)"],
+    ["k-jwt", "3. Dependencies inject hoti hain"],
+    ["k-jwt", "4. Init callbacks: @PostConstruct"],
+    ["k-prod", "5. BeanPostProcessor: postProcessAfterInitialization"],
+    ["grnbox", "6. Pointcut match? Haan to proxy asli bean ki jagah"]
+  ], 90, 460, 44, 30)) };
+})();
+
+function buildFig(F) {
+  var f = el("figure", "fig"), w = el("div", "figwrap"); w.innerHTML = F.svg;
+  f.appendChild(w); f.appendChild(el("figcaption", null, F.cap)); return f;
+}
+
+/* header legend + chips */
+var legend = document.getElementById("legend");
+var chips = document.getElementById("chips");
+TOPICS.forEach(function (T) {
+  var count = Q.filter(function (x) { return x.t === T.k; }).length;
+  var p = el("span", "pill"); p.setAttribute("data-t", T.k);
+  p.appendChild(el("i")); p.appendChild(document.createTextNode(T.name + " (" + count + ")"));
+  legend.appendChild(p);
+  var a = el("a", "chip", T.name); a.href = "#s-" + T.k; a.setAttribute("data-t", T.k);
+  chips.appendChild(a);
+});
+[["Practice","#practice"],["Checklist","#checklist"],["Links","#links"]].forEach(function (x) {
+  var a = el("a", "chip plain", x[0]); a.href = x[1]; chips.appendChild(a);
+});
+
+/* priority */
+var byN = {}; Q.forEach(function (x) { byN[x.n] = x; });
+var prio = document.getElementById("prio");
+PRIORITY.forEach(function (n) {
+  var a = el("a", "qnum", pad(n)); a.href = "#q" + n; a.setAttribute("data-t", byN[n].t); a.title = byN[n].q;
+  prio.appendChild(a);
+});
+
+/* topics + cards */
+function buildCard(x) {
+  var c = el("article", "card"); c.id = "q" + x.n; c.setAttribute("data-t", x.t);
+  c.setAttribute("data-s", (x.q + " " + x.en.replace(/\*\*/g, "") + " " + x.hi + " " + (x.pts || []).join(" ") + " " + (x.deep || []).map(function (b) { return b[0] + " " + b[1]; }).join(" ")).toLowerCase());
+  var top = el("div", "card-top");
+  top.appendChild(el("div", "qbadge", pad(x.n)));
+  var h = el("h3", null, x.q);
+  if (PRIORITY.indexOf(x.n) > -1) h.appendChild(el("span", "star", "Pehle padho"));
+  top.appendChild(h); c.appendChild(top);
+
+  var g = el("div", "say-grid");
+  var en = el("div", "say en"); en.appendChild(el("h4", null, "Interview definition (English)")); en.appendChild(rich(x.en));
+  var hi = el("div", "say hi"); hi.appendChild(el("h4", null, "Hinglish mein samjho")); hi.appendChild(el("p", null, x.hi));
+  g.appendChild(en); g.appendChild(hi); c.appendChild(g);
+
+  if (x.fig) x.fig.forEach(function (k) { c.appendChild(buildFig(FIGS[k])); });
+  if (x.flow && !x.fig) {
+    var f = el("div", "flow");
+    x.flow.forEach(function (s, i) { if (i) f.appendChild(el("b", null, "→")); f.appendChild(el("span", null, s)); });
+    c.appendChild(f);
+  }
+  if (x.table) {
+    var w = el("div", "tablewrap"), t = el("table"), th = el("thead"), tr = el("tr");
+    x.table.head.forEach(function (hd) { tr.appendChild(el("th", null, hd)); }); th.appendChild(tr); t.appendChild(th);
+    var tb = el("tbody");
+    x.table.rows.forEach(function (r) { var rr = el("tr"); r.forEach(function (cell) { rr.appendChild(el("td", null, cell)); }); tb.appendChild(rr); });
+    t.appendChild(tb); w.appendChild(t); c.appendChild(w);
+  }
+  if (x.deep) {
+    var dp = el("div", "deep"); dp.appendChild(el("h4", null, "Detail mein samjho"));
+    x.deep.forEach(function (b) { dp.appendChild(el("h5", null, b[0])); dp.appendChild(el("p", null, b[1])); });
+    c.appendChild(dp);
+  }
+  if (x.pts) {
+    var ul = el("ul", "pts"); x.pts.forEach(function (p) { ul.appendChild(el("li", null, p)); }); c.appendChild(ul);
+  }
+  if (x.steps) {
+    var ol = el("ol", "steps"); x.steps.forEach(function (s) { ol.appendChild(el("li", null, s)); }); c.appendChild(ol);
+  }
+  if (x.code) { var pre = el("pre"); pre.appendChild(el("code", null, x.code)); c.appendChild(pre); }
+  if (x.note) {
+    var n = el("div", "note " + (x.note.w ? "warn" : "tip")); n.appendChild(el("b", null, x.note.t)); n.appendChild(el("span", null, x.note.x)); c.appendChild(n);
+  }
+  if (x.ln && x.ln.length) {
+    var r = el("div", "refs"); r.appendChild(el("small", null, "Reference"));
+    x.ln.forEach(function (k) { var a = el("a", null, L[k][0]); a.href = L[k][1]; a.target = "_blank"; a.rel = "noopener"; r.appendChild(a); });
+    c.appendChild(r);
+  }
+  return c;
+}
+var main = document.getElementById("topics");
+TOPICS.forEach(function (T) {
+  var s = el("section", "topic"); s.id = "s-" + T.k; s.setAttribute("data-t", T.k);
+  var h = el("div", "sec-head"); h.appendChild(el("h2", null, T.name)); h.appendChild(el("span", null, T.sub)); s.appendChild(h);
+  var cards = el("div", "cards");
+  Q.filter(function (x) { return x.t === T.k; }).sort(function (a, b) { return a.n - b.n; }).forEach(function (x) { cards.appendChild(buildCard(x)); });
+  s.appendChild(cards); main.appendChild(s);
+});
+
+/* practice */
+var pq = document.getElementById("pq");
+PRACTICE.forEach(function (p, i) {
+  var d = el("details", "pq"); d.setAttribute("data-t", i % 2 ? "web" : "prod");
+  var s = el("summary"); s.appendChild(el("span", "qbadge", String(i + 1))); s.appendChild(el("span", null, p[0])); d.appendChild(s);
+  d.appendChild(el("p", "ans", p[1])); pq.appendChild(d);
+});
+
+/* checklist with remembered ticks */
+var store = null; try { store = JSON.parse(localStorage.getItem("web-aop-check") || "[]"); } catch (e) { store = []; }
+if (!Array.isArray(store)) store = [];
+var chk = document.getElementById("check");
+function refresh() {
+  var done = chk.querySelectorAll("input:checked").length;
+  document.getElementById("cnt").textContent = done + " / " + CHECK.length + " done";
+  document.getElementById("bar").style.width = (done / CHECK.length * 100) + "%";
+}
+CHECK.forEach(function (t, i) {
+  var l = el("label"); var inp = el("input"); inp.type = "checkbox"; inp.id = "ck" + i; inp.checked = store.indexOf(i) > -1;
+  inp.addEventListener("change", function () {
+    var all = []; chk.querySelectorAll("input").forEach(function (b, j) { if (b.checked) all.push(j); });
+    try { localStorage.setItem("web-aop-check", JSON.stringify(all)); } catch (e) {}
+    refresh();
+  });
+  l.appendChild(inp); l.appendChild(el("span", null, t)); chk.appendChild(l);
+});
+refresh();
+
+/* links table */
+var lr = document.getElementById("linkrows");
+LINKROWS.forEach(function (r) {
+  var row = el("div", "lrow"); row.setAttribute("data-t", r[0]);
+  row.appendChild(el("div", "lt", r[1])); row.appendChild(el("div", "lq", "Q " + r[2]));
+  var ll = el("div", "ll");
+  r[3].forEach(function (k) { var a = el("a", null, L[k][0]); a.href = L[k][1]; a.target = "_blank"; a.rel = "noopener"; ll.appendChild(a); });
+  row.appendChild(ll); lr.appendChild(row);
+});
+
+/* search */
+document.getElementById("search").addEventListener("input", function (e) {
+  var v = e.target.value.trim().toLowerCase();
+  document.querySelectorAll(".card").forEach(function (c) { c.hidden = v && c.getAttribute("data-s").indexOf(v) === -1; });
+  document.querySelectorAll("section.topic .cards").forEach(function (g) {
+    var any = g.querySelector(".card:not([hidden])");
+    g.parentElement.hidden = !any;
+  });
+});
+</script>
+
+</body></html>
