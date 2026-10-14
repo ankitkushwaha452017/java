@@ -1,0 +1,1161 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>JDBC to JPA Topic Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky topic bar, six colour-coded topic sections, one card per question
+   (Interview line in English, Hinglish samjho, key points, code), then practice, checklist, links. */
+:root {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --fg: #14172b;
+  --muted: #566079;
+  --border: #dde1ee;
+  --code-bg: #101426;
+  --code-fg: #e6e9ff;
+  --on-tone: #ffffff;
+  --warn-bg: #fff4d6;
+  --warn-ink: #7a4a00;
+  --tip-bg: #e3f6e9;
+  --tip-ink: #14532d;
+
+  --core: #4f46e5;  --core-ink: #4338ca;  --core-tint: #ecebff;
+  --auth: #0f9e8f;  --auth-ink: #0b766b;  --auth-tint: #d9f5f1;
+  --role: #0284c7;  --role-ink: #0369a1;  --role-tint: #def1fd;
+  --jwt:  #ea580c;  --jwt-ink:  #c2410c;  --jwt-tint:  #ffe9d6;
+  --web:  #e11d48;  --web-ink:  #be123c;  --web-tint:  #ffe3e9;
+  --prod: #a21caf;  --prod-ink: #86198f;  --prod-tint: #f8e4fb;
+
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1120; --surface: #171b2f; --fg: #eceefb; --muted: #a3a9c6; --border: #2a3050;
+    --code-bg: #0a0d1a; --code-fg: #e6e9ff; --on-tone: #0e1120;
+    --warn-bg: #3a2c0c; --warn-ink: #ffd88a; --tip-bg: #12341f; --tip-ink: #9ae6b4;
+    --core: #8b8cff; --core-ink: #a9aaff; --core-tint: #22254d;
+    --auth: #2dd4bf; --auth-ink: #5eead4; --auth-tint: #11332f;
+    --role: #38bdf8; --role-ink: #7dd3fc; --role-tint: #10304a;
+    --jwt:  #fb923c; --jwt-ink:  #fdba74; --jwt-tint:  #3a2314;
+    --web:  #fb7185; --web-ink:  #fda4af; --web-tint:  #3d1823;
+    --prod: #e879f9; --prod-ink: #f0abfc; --prod-tint: #351a3d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1120; --surface: #171b2f; --fg: #eceefb; --muted: #a3a9c6; --border: #2a3050;
+  --code-bg: #0a0d1a; --code-fg: #e6e9ff; --on-tone: #0e1120;
+  --warn-bg: #3a2c0c; --warn-ink: #ffd88a; --tip-bg: #12341f; --tip-ink: #9ae6b4;
+  --core: #8b8cff; --core-ink: #a9aaff; --core-tint: #22254d;
+  --auth: #2dd4bf; --auth-ink: #5eead4; --auth-tint: #11332f;
+  --role: #38bdf8; --role-ink: #7dd3fc; --role-tint: #10304a;
+  --jwt:  #fb923c; --jwt-ink:  #fdba74; --jwt-tint:  #3a2314;
+  --web:  #fb7185; --web-ink:  #fda4af; --web-tint:  #3d1823;
+  --prod: #e879f9; --prod-ink: #f0abfc; --prod-tint: #351a3d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.6; padding-inline: 16px; }
+.wrap { max-width: 980px; margin-inline: auto; padding-block: 24px 64px; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--core); outline-offset: 2px; border-radius: 4px; }
+
+/* topic tones */
+[data-t="core"] { --tone: var(--core); --ink: var(--core-ink); --tint: var(--core-tint); }
+[data-t="auth"] { --tone: var(--auth); --ink: var(--auth-ink); --tint: var(--auth-tint); }
+[data-t="role"] { --tone: var(--role); --ink: var(--role-ink); --tint: var(--role-tint); }
+[data-t="jwt"]  { --tone: var(--jwt);  --ink: var(--jwt-ink);  --tint: var(--jwt-tint); }
+[data-t="web"]  { --tone: var(--web);  --ink: var(--web-ink);  --tint: var(--web-tint); }
+[data-t="prod"] { --tone: var(--prod); --ink: var(--prod-ink); --tint: var(--prod-tint); }
+
+/* header */
+.hero { display: grid; gap: 12px; padding-block: 8px 20px; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(32px, 6vw, 52px); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -.02em; }
+.hero p { margin: 0; color: var(--muted); max-width: 62ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--tint); color: var(--ink); }
+.pill i { width: 9px; height: 9px; border-radius: 50%; background: var(--tone); display: inline-block; }
+
+/* sticky nav */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; margin-inline: -16px; padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); display: grid; gap: 8px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.chip { flex: none; text-decoration: none; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--tint); color: var(--ink); border: 1px solid transparent; white-space: nowrap; }
+.chip:hover { border-color: var(--tone); }
+.chip.plain { background: var(--surface); color: var(--fg); border-color: var(--border); }
+.search { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--fg); font: inherit; font-size: 15px; }
+
+/* priority box */
+.start { margin-block: 24px; padding: 18px 20px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); display: grid; gap: 10px; }
+.start h2 { margin: 0; font-family: var(--font-display); font-size: 20px; }
+.start p { margin: 0; color: var(--muted); }
+.qnums { display: flex; flex-wrap: wrap; gap: 6px; }
+.qnum { text-decoration: none; font-family: var(--font-mono); font-size: 13px; font-weight: 500; padding: 3px 9px; border-radius: 8px; background: var(--tint); color: var(--ink); }
+.qnum:hover { background: var(--tone); color: var(--on-tone); }
+
+/* sections */
+section.topic { margin-block: 40px 0; scroll-margin-top: 110px; }
+.sec-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 3px solid var(--tone); }
+.sec-head h2 { margin: 0; font-family: var(--font-display); font-size: clamp(24px, 4vw, 32px); color: var(--ink); text-wrap: balance; }
+.sec-head span { color: var(--muted); font-size: 14px; }
+.cards { display: grid; gap: 18px; }
+
+/* card */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: grid; gap: 14px; scroll-margin-top: 110px; min-width: 0; }
+.card[hidden] { display: none; }
+.card-top { display: flex; gap: 12px; align-items: flex-start; }
+.qbadge { flex: none; min-width: 46px; height: 34px; padding-inline: 8px; display: grid; place-items: center; border-radius: 10px; background: var(--tone); color: var(--on-tone); font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+.card h3 { margin: 0; font-family: var(--font-display); font-size: clamp(19px, 3vw, 23px); line-height: 1.25; text-wrap: balance; min-width: 0; padding-top: 2px; }
+.star { display: inline-block; margin-left: 8px; vertical-align: middle; font-family: var(--font-body); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--tone); color: var(--on-tone); }
+
+.say-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.say { border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.say.en { background: var(--tint); }
+.say.hi { background: var(--bg); border: 1px dashed var(--tone); }
+.say h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+.say p { margin: 0; font-size: 16px; }
+.say.en p { font-weight: 500; }
+.say strong { font-weight: 700; color: var(--ink); background: var(--surface); padding: 0 5px; border-radius: 5px; }
+
+.deep { border-radius: 12px; border: 1px solid var(--border); border-left: 4px solid var(--tone); padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.deep h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+.deep h5 { margin: 10px 0 0; font-family: var(--font-display); font-size: 17px; color: var(--ink); text-wrap: balance; }
+.deep p { margin: 0; }
+
+/* diagrams */
+.fig { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.figwrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); padding: 10px; }
+.figwrap svg { display: block; width: 100%; min-width: 560px; height: auto; color: var(--fg); }
+.fig figcaption { color: var(--muted); font-size: 14px; }
+.fig text { fill: currentColor; font-family: var(--font-body); font-size: 12.5px; }
+.fig text.mono { font-family: var(--font-mono); font-size: 12px; }
+.fig text.b { font-weight: 700; }
+.fig text.dot { font-size: 26px; font-weight: 700; }
+.fig text.sm { font-size: 11.5px; fill: var(--muted); }
+.fig text.red { fill: var(--web-ink); }
+.fig text.grn { fill: var(--auth-ink); }
+.fig .box { fill: var(--tint); stroke: var(--tone); stroke-width: 1.5; }
+.fig .plain { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
+.fig .redbox { fill: var(--web-tint); stroke: var(--web); stroke-width: 1.5; }
+.fig .grnbox { fill: var(--auth-tint); stroke: var(--auth); stroke-width: 1.5; }
+.fig .k-core { fill: var(--core-tint); stroke: var(--core); stroke-width: 1.5; }
+.fig .k-role { fill: var(--role-tint); stroke: var(--role); stroke-width: 1.5; }
+.fig .k-jwt { fill: var(--jwt-tint); stroke: var(--jwt); stroke-width: 1.5; }
+.fig .k-web { fill: var(--web-tint); stroke: var(--web); stroke-width: 1.5; }
+.fig .k-auth { fill: var(--auth-tint); stroke: var(--auth); stroke-width: 1.5; }
+.fig .k-prod { fill: var(--prod-tint); stroke: var(--prod); stroke-width: 1.5; }
+.fig .ln { stroke: currentColor; stroke-width: 1.5; fill: none; }
+.fig .redln { stroke: var(--web); stroke-width: 1.75; fill: none; }
+.fig .grnln { stroke: var(--auth); stroke-width: 1.75; fill: none; }
+.fig .dash { stroke-dasharray: 5 4; }
+.fig .life { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
+.mk { fill: currentColor; }
+.mkr { fill: var(--web); }
+.mkg { fill: var(--auth); }
+ul.pts { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+ul.pts li { padding-left: 22px; position: relative; min-width: 0; }
+ul.pts li::before { content: ""; position: absolute; left: 4px; top: .6em; width: 8px; height: 8px; border-radius: 3px; background: var(--tone); }
+.sub { margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.flow span { padding: 5px 10px; border-radius: 8px; background: var(--tint); color: var(--ink); font-size: 14px; font-weight: 600; }
+.flow b { color: var(--tone); font-weight: 700; }
+
+ol.steps { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; counter-reset: s; }
+ol.steps li { counter-increment: s; padding-left: 34px; position: relative; }
+ol.steps li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; border-radius: 50%; background: var(--tone); color: var(--on-tone); font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+
+.tablewrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; vertical-align: top; }
+th { background: var(--tone); color: var(--on-tone); font-weight: 600; white-space: nowrap; }
+td { border-top: 1px solid var(--border); }
+td code, th code { font-family: var(--font-mono); font-size: 13px; }
+
+pre { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; border-left: 4px solid var(--tone); }
+code.i { font-family: var(--font-mono); font-size: .88em; background: var(--tint); color: var(--ink); padding: 1px 6px; border-radius: 6px; }
+
+.note { border-radius: 12px; padding: 11px 14px; font-size: 15px; display: grid; gap: 2px; }
+.note b { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.note.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.note.tip { background: var(--tip-bg); color: var(--tip-ink); }
+
+.refs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px; border-top: 1px solid var(--border); }
+.refs small { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.refs a { font-size: 13px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--tone); color: var(--ink); }
+.refs a:hover { background: var(--tone); color: var(--on-tone); }
+
+/* practice */
+.practice { display: grid; gap: 10px; }
+details.pq { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0; }
+details.pq summary { cursor: pointer; padding: 12px 16px; font-weight: 600; display: flex; gap: 10px; align-items: center; list-style: none; }
+details.pq summary::-webkit-details-marker { display: none; }
+details.pq summary .qbadge { height: 28px; min-width: 34px; font-size: 13px; }
+details.pq summary::after { content: "Answer dekho"; margin-left: auto; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+details.pq[open] summary::after { content: "Chhupao"; }
+details.pq .ans { padding: 0 16px 14px; margin: 0; color: var(--fg); }
+
+.check { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 8px; }
+.check label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; font-weight: 500; }
+.check input { width: 18px; height: 18px; accent-color: var(--tone); flex: none; }
+.check input:checked + span { text-decoration: line-through; color: var(--muted); }
+.progress { height: 8px; border-radius: 99px; background: var(--border); overflow: hidden; }
+.progress div { height: 100%; width: 0; background: var(--tone); transition: width .25s; }
+
+.final { margin-top: 24px; padding: 18px 20px; border-radius: 16px; background: var(--tint); color: var(--fg); display: grid; gap: 8px; }
+.final h3 { margin: 0; font-family: var(--font-display); color: var(--ink); }
+.final p { margin: 0; }
+
+/* link table */
+.links { display: grid; gap: 10px; }
+.lrow { background: var(--surface); border: 1px solid var(--border); border-left: 6px solid var(--tone); border-radius: 12px; padding: 12px 16px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .5fr) minmax(0, 1.2fr); gap: 8px 16px; align-items: center; }
+.lrow .lt { font-weight: 600; }
+.lrow .lq { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.lrow .ll { display: flex; flex-wrap: wrap; gap: 6px; }
+.lrow .ll a { font-size: 13px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 8px; background: var(--tint); color: var(--ink); }
+.lrow .ll a:hover { background: var(--tone); color: var(--on-tone); }
+.fine { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+@media (max-width: 640px) {
+  .lrow { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  details.pq summary { flex-wrap: wrap; }
+  details.pq summary::after { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .progress div { transition: none; } }
+
+/* topic-wise guide */
+.wrap { max-width: 1180px; }
+.layout { display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); }
+.side { display: none; }
+@media (min-width: 1020px) {
+  .layout { grid-template-columns: 250px minmax(0, 1fr); }
+  .side { display: block; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 112px); align-self: start; max-height: calc(100vh - 130px); overflow-y: auto; padding-right: 8px; font-size: 14px; }
+}
+.side h4 { margin: 0 0 6px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.sgrp { display: grid; gap: 1px; margin-bottom: 10px; }
+.sgrp a { text-decoration: none; padding: 3px 8px; border-radius: 6px; color: var(--muted); }
+.sgrp a:hover { background: var(--tint); color: var(--ink); }
+.sgrp a.sch { font-weight: 700; color: var(--ink); border-left: 4px solid var(--tone); background: var(--tint); }
+.sgrp a.ssub { margin-left: 8px; }
+.main { min-width: 0; }
+.chapter { margin-block: 0 56px; scroll-margin-top: 110px; display: grid; gap: 0; }
+.chapter[hidden] { display: none; }
+.chap-head { border-radius: 16px; background: var(--tint); border-left: 8px solid var(--tone); padding: 22px 22px 20px; display: grid; gap: 12px; min-width: 0; }
+.chap-no { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); font-weight: 600; }
+.chap-head h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: clamp(26px, 4.6vw, 38px); line-height: 1.1; letter-spacing: -.015em; text-wrap: balance; }
+.chap-head .big { margin: 0; font-size: 17px; max-width: 68ch; }
+.learn-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--ink); }
+.learn { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 8px; }
+.learn div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.cnav { display: flex; flex-wrap: wrap; gap: 6px; }
+.cnav a { text-decoration: none; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--surface); color: var(--ink); border: 1px solid var(--tone); }
+.cnav a:hover { background: var(--tone); color: var(--on-tone); }
+.concept { padding-block: 28px; border-bottom: 1px solid var(--border); display: grid; gap: 14px; scroll-margin-top: 110px; min-width: 0; }
+.concept[hidden] { display: none; }
+.concept h3 { margin: 0; font-family: var(--font-display); font-size: clamp(21px, 3.2vw, 27px); line-height: 1.2; color: var(--ink); text-wrap: balance; }
+.concept .lead { margin: 0; font-size: 17px; max-width: 70ch; }
+.chap-foot { display: grid; gap: 12px; padding-top: 22px; }
+.remember { background: var(--tone); color: var(--on-tone); border-radius: 12px; padding: 12px 16px; font-weight: 600; }
+.done { display: flex; gap: 10px; align-items: center; font-weight: 600; cursor: pointer; }
+.done input { width: 18px; height: 18px; accent-color: var(--tone); }
+.readcnt { color: var(--muted); font-size: 14px; font-weight: 600; margin: 0; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<marker id="ah" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mk" d="M0,0 L9,4.5 L0,9 z"/></marker>
+<marker id="ahr" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mkr" d="M0,0 L9,4.5 L0,9 z"/></marker>
+<marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="mkg" d="M0,0 L9,4.5 L0,9 z"/></marker>
+</defs></svg>
+<div class="wrap">
+  <header class="hero" data-t="core">
+    <div class="eyebrow">Java / Spring Boot &middot; SDE-2 backend interviews</div>
+    <h1>JDBC to JPA Topic Guide</h1>
+    <p>12 chapters, sikhne ke order mein: JDBC aur Spring JDBC se Hibernate, relationships aur Spring Data JPA tak. Har chapter mein big picture, concepts, diagrams, code aur ek line ka takeaway.</p>
+    <p class="readcnt" id="readcnt"></p>
+  </header>
+
+  <div class="bar">
+    <div class="chips" id="chips"></div>
+    <input class="search" id="search" type="search" placeholder="Search karo: n+1, lazy, cascade, jdbc, mappedBy ..." aria-label="Search concepts">
+  </div>
+
+  <div class="layout" style="margin-top:24px">
+    <aside class="side" id="side" aria-label="Topic map"></aside>
+    <div class="main">
+      <div id="chapters"></div>
+
+      <section class="topic" id="practice" data-t="prod">
+        <div class="sec-head"><h2>Practice: interviewer follow-ups</h2><span>Pehle khud bolo, phir answer kholo</span></div>
+        <div class="practice" id="pq"></div>
+      </section>
+
+      <section class="topic" id="checklist" data-t="auth">
+        <div class="sec-head"><h2>Quick revision checklist</h2><span id="cnt">0 / 18 done</span></div>
+        <div class="progress" aria-hidden="true"><div id="bar"></div></div>
+        <div class="check" id="check" style="margin-top:12px"></div>
+        <div class="final" data-t="prod">
+          <h3>Final interview tip</h3>
+          <p>Har answer ka pattern rakho: <b>definition</b>, phir <b>kaunsi problem solve karta hai</b>, phir <b>ek chhota example</b>.</p>
+          <p>Sabse zyada pooche jaane wale: persistence context aur dirty checking, entity lifecycle, owning side aur mappedBy, lazy vs eager aur N+1, Page vs Slice, aur @Transactional rollbackFor.</p>
+        </div>
+      </section>
+
+      <section class="topic" id="links" data-t="role">
+        <div class="sec-head"><h2>Reference links by topic</h2><span>Official docs aur references</span></div>
+        <p class="fine">Yeh links maine open karke verify nahi kiye. Agar koi page move ho gaya ho toh docs site par search kar lena.</p>
+        <div class="links" id="linkrows"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+var TOPICS = [
+  { k: "core", name: "JDBC Basics", sub: "Raw Java se database: driver, Connection, PreparedStatement, transaction" },
+  { k: "auth", name: "ORM and Hibernate", sub: "Kyun ORM, JPA vs Hibernate, configuration" },
+  { k: "role", name: "Entity Mapping", sub: "@Entity, @Column, enums, @Embeddable, @ElementCollection" },
+  { k: "jwt",  name: "Hibernate Internals", sub: "EntityManager, L1 cache, dirty checking, lifecycle, batching" },
+  { k: "web",  name: "Relationships and Loading", sub: "Many-to-one, cascade, lazy loading, N+1, EntityGraph" },
+  { k: "prod", name: "Spring Data JPA and Transactions", sub: "Repositories, queries, pagination, @Transactional" }
+];
+
+var L = {
+  jdbcTut: ["Oracle JDBC Tutorial", "https://docs.oracle.com/javase/tutorial/jdbc/basics/index.html"],
+  jdbcTx: ["JDBC Transactions (Oracle)", "https://docs.oracle.com/javase/tutorial/jdbc/basics/transactions.html"],
+  jdbcApi: ["java.sql API", "https://docs.oracle.com/en/java/javase/21/docs/api/java.sql/java/sql/package-summary.html"],
+  hibDocs: ["Hibernate ORM docs", "https://hibernate.org/orm/documentation/"],
+  hibGuide: ["Hibernate User Guide", "https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html"],
+  jpaSpec: ["Jakarta Persistence spec", "https://jakarta.ee/specifications/persistence/"],
+  bootData: ["Spring Boot: SQL databases", "https://docs.spring.io/spring-boot/reference/data/sql.html"],
+  sdjRef: ["Spring Data JPA Reference", "https://docs.spring.io/spring-data/jpa/reference/"],
+  sdjQuery: ["JPA Query Methods", "https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html"],
+  sdjRepo: ["Repository core concepts", "https://docs.spring.io/spring-data/jpa/reference/repositories/core-concepts.html"],
+  springTx: ["Spring Transaction Management", "https://docs.spring.io/spring-framework/reference/data-access/transaction.html"],
+  springRollback: ["Rolling back a declarative transaction", "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html"],
+  n1: ["N+1 query problem (Vlad Mihalcea)", "https://vladmihalcea.com/n-plus-1-query-problem/"]
+};
+
+var PRIORITY = [5, 8, 11, 21, 22, 26, 31, 32, 37, 40, 41];
+
+/* n = question number, t = topic, q = title, en = interview definition, hi = Hinglish samjho,
+   pts = key points, fig = diagram keys, steps = numbered list, table, code, note {w|t}, ln = link keys */
+var Q = [
+{ n:1, t:"core", q:"What is JDBC, and why do we need it?",
+  en:"**JDBC** (Java Database Connectivity) is the standard Java API, in the **java.sql** package, for talking to a **relational database**. It defines common interfaces like **Connection**, **Statement**, **PreparedStatement** and **ResultSet**, so the same Java code works with MySQL, PostgreSQL or Oracle once the right **driver** is added.",
+  hi:"Har database (MySQL, Oracle, PostgreSQL) ke apne rules hote hain. Java ne ek common API de di, java.sql. Tum sirf interfaces use karte ho, aur har database ka driver andar ka kaam sambhalta hai.",
+  fig:["jdbc"],
+  pts:["Java app (JVM) aur database aksar alag servers par chalte hain aur network par baat karte hain.","Har vendor ke apne rules hain: connection, authentication, SQL packaging, data types, errors, transactions.","Collection se compare karo: Collection ek interface hai, ArrayList aur LinkedList uski implementations. Yahan interface = java.sql, implementation = driver."],
+  ln:["jdbcTut","jdbcApi"] },
+{ n:2, t:"core", q:"What are the main JDBC interfaces, and what is a JDBC driver?",
+  en:"The core interfaces are **Connection** (an open session with the database), **Statement** and **PreparedStatement** (they run SQL) and **ResultSet** (the rows a SELECT returns). A **JDBC driver**, such as **mysql-connector-j**, is the vendor's library that **implements these interfaces** for one specific database.",
+  hi:"Interface sirf contract hai, asli kaam driver karta hai. Driver ko pom.xml mein dependency ki tarah add karte ho. Ye polymorphism ka real example hai: code interface par likhte ho, implementation vendor ki hoti hai.",
+  table:{ head:["Interface","Kaam"], rows:[["Connection","Database ke saath open session"],["Statement","Plain SQL string chalata hai"],["PreparedStatement","? placeholders wali SQL, safe aur reusable"],["ResultSet","SELECT ke rows par cursor"]] },
+  code:"<dependency>\n    <groupId>com.mysql</groupId>\n    <artifactId>mysql-connector-j</artifactId>\n    <!-- version Maven Repository se lo -->\n</dependency>",
+  note:{t:"Yaad rakho", x:"Modern JDBC (4.0 aur upar) mein driver apne aap register ho jaata hai. Class.forName() likhne ki zarurat nahi."},
+  ln:["jdbcApi"] },
+{ n:3, t:"core", q:"How do you connect to a database using JDBC?",
+  en:"I call **DriverManager.getConnection(url, username, password)**, which returns a **Connection**. The **JDBC URL** carries the protocol, host, port and database name, for example **jdbc:mysql://localhost:3306/student_db**.",
+  hi:"Connection ke liye teen cheezein chahiye: URL, username, password. URL ko todo: jdbc:mysql:// (protocol), localhost (host), 3306 (port), student_db (database ka naam). DriverManager registered drivers ko manage karta hai.",
+  code:"String url = \"jdbc:mysql://localhost:3306/student_db\";\nString username = \"root\";\nString password = \"your_password\";\n\ntry (Connection connection =\n        DriverManager.getConnection(url, username, password)) {\n    System.out.println(\"Database Connected Successfully!\");\n} catch (SQLException e) {\n    e.printStackTrace();\n}",
+  note:{w:1, t:"Dhyan do", x:"Password code mein hardcode karna sirf demo ke liye theek hai. Real project mein environment variable ya config use karo."},
+  ln:["jdbcTut"] },
+{ n:4, t:"core", q:"What is the difference between executeUpdate(), executeQuery() and execute()?",
+  en:"**executeUpdate()** runs INSERT, UPDATE, DELETE or DDL and returns the **affected row count** (int). **executeQuery()** runs SELECT and returns a **ResultSet**. **execute()** is the general-purpose one and returns a **boolean**: **true** means the result is a ResultSet, **false** means it is an update count.",
+  hi:"Trick: Update = number (int), Query = ResultSet, execute = boolean jo batata hai ki result kya hai. execute() true de to ps.getResultSet() lo, false de to ps.getUpdateCount() lo.",
+  table:{ head:["Method","Kis ke liye","Return"], rows:[["executeUpdate()","INSERT, UPDATE, DELETE, DDL","int (rows affected)"],["executeQuery()","SELECT","ResultSet"],["execute()","Koi bhi SQL","boolean (true = ResultSet)"]] },
+  code:"boolean isResultSet = ps.execute();\n\nif (isResultSet) {            // SELECT\n    try (ResultSet rs = ps.getResultSet()) {\n        while (rs.next()) { /* read rows */ }\n    }\n} else {                      // INSERT / UPDATE / DELETE\n    int updateCount = ps.getUpdateCount();\n}",
+  ln:["jdbcApi"] },
+{ n:5, t:"core", q:"What is the difference between Statement and PreparedStatement?",
+  en:"**PreparedStatement** uses **? placeholders** and sets values with **type-safe setters**, so the database treats input as data and never as SQL. This prevents **SQL injection**, handles **NULL**, dates and binary data correctly, and the query can be **precompiled and reused**. A plain **Statement** built with string concatenation or **String.format()** gives none of this.",
+  hi:"Statement mein tum SQL string khud jodte ho, to user ka input SQL ban sakta hai (SQL injection). PreparedStatement mein ? lagate ho aur value alag se set karte ho, to input hamesha sirf data rehta hai.",
+  code:"// Unsafe: user input becomes part of the SQL\nString sql = \"SELECT * FROM students WHERE email = '\" + email + \"'\";\n\n// Safe: ? placeholder, value set separately\nString sql = \"SELECT * FROM students WHERE email = ?\";\nPreparedStatement ps = connection.prepareStatement(sql);\nps.setString(1, email);   // index starts at 1",
+  pts:["Parameter index 1 se shuru hota hai, 0 se nahi.","Setters: setString, setInt, setLong, setNull.","Plain Statement ki dikkatein: NULL handling, binary data, date syntax, kharab readability, SQL injection."],
+  note:{t:"Interview line", x:"'I always use PreparedStatement with ? placeholders and never concatenate user input into SQL.'"},
+  ln:["jdbcTut"] },
+{ n:6, t:"core", q:"How does ResultSet work?",
+  en:"A **ResultSet** is a **cursor** over the rows a SELECT returns. It starts **before the first row**. **rs.next()** moves to the next row and returns **false** when there are no more rows. I read columns with **getString / getInt / getLong** by **column name or 1-based index**, and usually keep the mapping in a **mapRow()** helper.",
+  hi:"Cursor shuru mein pehli row se bhi pehle khada hota hai. Har next() ek row aage badhata hai. Ek row chahiye (by id) to if (rs.next()), kai rows chahiye to while (rs.next()).",
+  code:"private Student mapRow(ResultSet rs) throws SQLException {\n    Student student = new Student();\n    student.setId(rs.getLong(\"id\"));\n    student.setName(rs.getString(\"name\"));\n    student.setEmail(rs.getString(\"email\"));\n    student.setAge(rs.getInt(\"age\"));\n    return student;\n}\n\nwhile (rs.next()) {              // many rows\n    studentList.add(mapRow(rs));\n}",
+  pts:["Ek row: if (rs.next()). Kai rows: while (rs.next()).","Ye manual mapping boilerplate hai. ORM isi ko automatic kar deta hai."],
+  ln:["jdbcApi"] },
+{ n:7, t:"core", q:"Why do we use try-with-resources in JDBC?",
+  en:"**try-with-resources** (Java 7+) automatically closes anything that implements **AutoCloseable**, such as **Connection**, **PreparedStatement** and **ResultSet**, even when an exception occurs. Resources close in **reverse order**: ResultSet, then PreparedStatement, then Connection. It replaces the verbose **finally** block with nested try-catch.",
+  hi:"Pehle finally mein ps.close() aur connection.close() likhna padta tha, aur close() khud bhi exception de sakta hai, to nested try-catch. Ab bracket mein resources declare karo, Java unhe ulte order mein khud band kar deta hai.",
+  code:"try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);\n     PreparedStatement ps = connection.prepareStatement(sql);\n     ResultSet rs = ps.executeQuery()) {\n    // use rs\n}   // closed automatically: rs -> ps -> connection",
+  note:{w:1, t:"Dhyan do", x:"Connection close na karne se connection leak hota hai. Connection pool khatam ho jaata hai aur app hang ho sakti hai."},
+  ln:["jdbcTut"] },
+{ n:8, t:"core", q:"How do transactions work in plain JDBC?",
+  en:"By default JDBC runs in **auto-commit** mode, so every statement commits immediately. For a multi-step operation I call **connection.setAutoCommit(false)**, run all statements, then **commit()** if all succeed or **rollback()** if any fails. This gives **atomicity**: all steps happen, or none do.",
+  hi:"Maan lo A se B ko Rs 1000 bhejne hain: pehle A se kato, phir B mein daalo. Beech mein fail ho gaya to paise gayab. Isliye dono ek transaction mein, ya to dono hon ya koi nahi.",
+  fig:["jdbctx"],
+  code:"try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {\n    connection.setAutoCommit(false);        // 1. start manual transaction\n    try {\n        // Query 1: deduct from A\n        // Query 2: credit to B\n        connection.commit();                // 2. all good\n    } catch (Exception e) {\n        connection.rollback();              // 3. undo everything\n    }\n} catch (SQLException e) {\n    e.printStackTrace();\n}",
+  ln:["jdbcTx"] },
+{ n:9, t:"core", q:"What are the limits of raw JDBC, and what comes after it?",
+  en:"Raw JDBC needs a lot of **boilerplate**: opening and closing connections, writing SQL by hand, setting every **?** parameter, **manually mapping** each ResultSet row to an object and writing transaction code. That is why projects move to **Spring JDBC (JdbcTemplate)**, **Hibernate (ORM)** and **Spring Data JPA** with **@Transactional**.",
+  hi:"Har layer ek purani dikkat hatati hai. Neeche wali table dekho, ye interview mein 'evolution' ke sawaal ka seedha answer hai.",
+  table:{ head:["Layer","Kya khatam karta hai"], rows:[["Raw JDBC","Kuch nahi: sab kuch khud likhna padta hai"],["Spring JDBC (JdbcTemplate)","Connection aur Statement ka boilerplate"],["Hibernate / JPA","SQL likhna aur ResultSet mapping"],["Spring Data JPA","Har entity ke liye repeat hone wala repository code"],["@Transactional","commit / rollback ka manual code"]] },
+  ln:["jdbcTut","hibDocs"] },
+
+{ n:10, t:"auth", q:"What is ORM, and what is the Object-Relational Impedance Mismatch?",
+  en:"**ORM** (Object-Relational Mapping) maps **Java classes to tables**, **fields to columns** and **objects to rows**, and generates the **SQL** automatically. It solves the **Object-Relational Impedance Mismatch**: the object world (encapsulation, inheritance, polymorphism, references) and the relational world (tables, primary and foreign keys, normalization) are modelled very differently.",
+  hi:"Java mein tum objects sochte ho, database mein tables. Dono ka model alag hai, is gap ko impedance mismatch kehte hain. ORM beech mein translator ka kaam karta hai: class = table, field = column, object = row.",
+  table:{ head:["Java (object world)","Database (relational world)"], rows:[["Class","Table"],["Field / property","Column"],["Object in heap memory","Row"],["Inheritance, polymorphism","Primary key, foreign key, normalization"]] },
+  pts:["Metadata mapping: class se table, property se column.","Automatic SQL: INSERT, UPDATE, SELECT, DELETE khud banta hai.","Parameter binding aur ResultSet mapping automatic.","Relationships (embedded, one-to-many) handle karta hai.","Caching se DB calls kam hoti hain.","Transaction manager ke saath integrate hota hai."],
+  ln:["hibDocs"] },
+{ n:11, t:"auth", q:"What is the difference between JPA, Hibernate and JDBC?",
+  en:"**JPA** (Jakarta Persistence API) is a **specification**: interfaces and annotations such as **@Entity** and **@Id**. **Hibernate** is an **ORM framework** and the default **implementation** of JPA in Spring Boot. **JDBC** is the low-level API that Hibernate uses **internally** to talk to the database.",
+  hi:"JPA = rulebook (interfaces). Hibernate = us rulebook ko follow karke asli kaam karne wala. JDBC = sabse neeche ki plumbing jo database se baat karti hai. Spring Data JPA in sab ke upar ek aur layer hai.",
+  fig:["layers"],
+  note:{t:"Yaad rakho", x:"Hibernate ek independent framework hai. Wo Spring ke bina bhi chalta hai."},
+  ln:["jpaSpec","hibDocs"] },
+{ n:12, t:"auth", q:"Which JPA properties do you configure in Spring Boot, and what are the ddl-auto options?",
+  en:"I set the **datasource** (url, username, password) and the JPA options in **application.properties**. **spring.jpa.hibernate.ddl-auto** controls schema generation, and **show-sql** with **format_sql** prints the SQL that Hibernate runs.",
+  hi:"Development mein update ya create chal jaata hai. Production mein none ya validate rakho aur schema changes Flyway ya Liquibase se karo.",
+  code:"spring.datasource.url=jdbc:mysql://localhost:3306/student_db\nspring.datasource.username=root\nspring.datasource.password=your_password\n\nspring.jpa.hibernate.ddl-auto=update\nspring.jpa.show-sql=true\nspring.jpa.properties.hibernate.format_sql=true",
+  table:{ head:["ddl-auto","Kya hota hai"], rows:[["update","Entity ke hisaab se schema badhata hai, existing data nahi udaata"],["create","Har startup par tables drop karke naye banata hai (data loss)"],["create-drop","Startup par create, shutdown par drop"],["validate","Sirf match check karta hai, mismatch par error"],["none","Kuch nahi karta (production, migration Flyway / Liquibase se)"]] },
+  note:{w:1, t:"Dhyan do", x:"Production mein ddl-auto=create ya update mat rakho."},
+  ln:["bootData","hibGuide"] },
+
+{ n:13, t:"role", q:"Which annotations do you use to map an entity to a table?",
+  en:"**@Entity** marks a class as a table-backed entity, **@Table(name)** sets the table name, **@Id** marks the **primary key** and **@GeneratedValue(strategy = IDENTITY)** lets the database **auto-increment** it. **@Column** customises a column: **name, nullable, unique, length**.",
+  hi:"Entity = database table ka Java roop. @Id zaroori hai. Field ka naam hi default column naam banta hai; alag naam chahiye to @Column(name = ...).",
+  code:"@Entity\n@Table(name = \"students\")\npublic class Student {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @Column(name = \"student_name\", nullable = false, length = 100)\n    private String name;\n\n    @Column(nullable = false, unique = true, length = 150)\n    private String email;\n\n    private int age;   // default mapping\n}",
+  table:{ head:["Annotation","Kaam"], rows:[["@Entity","Class ko JPA entity banata hai"],["@Table(name)","Custom table naam"],["@Id","Primary key"],["@GeneratedValue","PK auto-generation (jaise IDENTITY)"],["@Column","name, nullable, unique, length, precision"],["@Transient","Field ko DB column banne se rokta hai"],["@Enumerated","Enum ko STRING ya ORDINAL mein map karta hai"],["@Lob","Bada text ya binary (LONGTEXT / BLOB)"],["@Embeddable / @Embedded","Value object ko parent table mein jodta hai"],["@AttributeOverrides","Embedded copies ke column naam badalta hai"],["@ElementCollection","Basic ya embeddable values ki collection"],["@PersistenceContext","EntityManager proxy inject karta hai"],["@Transactional","Method ko transaction mein wrap karta hai"]] },
+  ln:["hibGuide","jpaSpec"] },
+{ n:14, t:"role", q:"How do you map special types like BigDecimal, dates, enums, large text and transient fields?",
+  en:"I use **BigDecimal with @Column(precision, scale)** for exact numbers like money, **LocalDate / LocalDateTime** for dates, **@Enumerated(EnumType.STRING)** for enums, **@Lob** for large text or binary data, and **@Transient** for fields that must not become columns.",
+  hi:"Enum ka default mapping ORDINAL (0, 1, 2) hota hai. Kal enum ka order badla to purana data galat ho jaayega. Isliye hamesha EnumType.STRING.",
+  code:"@Column(precision = 5, scale = 2)   // max 5 digits, 2 decimals (100.00)\nprivate BigDecimal percentage;\n\nprivate LocalDate dateOfBirth;        // DATE\nprivate LocalDateTime createdAt;      // TIMESTAMP / DATETIME\n\n@Enumerated(EnumType.STRING)          // stores 'ACTIVE', not 0\nprivate StudentStatus status;\n\n@Lob                                  // LONGTEXT / BLOB\nprivate String profileDescription;\n\n@Transient                            // no column created\nprivate String displayName;",
+  table:{ head:["Java type","SQL type"], rows:[["LocalDate","DATE"],["LocalTime","TIME"],["LocalDateTime","TIMESTAMP / DATETIME"]] },
+  ln:["hibGuide"] },
+{ n:15, t:"role", q:"What is an AttributeConverter?",
+  en:"An **AttributeConverter<X, Y>** converts a Java attribute to a database value and back, for example a **Boolean to 'Yes' / 'No'**. I implement **convertToDatabaseColumn()** and **convertToEntityAttribute()**, mark the class with **@Converter**, and apply it on the field with **@Convert**.",
+  hi:"Jab Java type aur DB ka format alag ho, tab converter beech mein translate karta hai. Entity mein Boolean rahega, DB mein 'Yes' ya 'No' string.",
+  code:"@Converter\npublic class BooleanToStringConverter\n        implements AttributeConverter<Boolean, String> {\n\n    @Override\n    public String convertToDatabaseColumn(Boolean attribute) {\n        if (attribute == null) return null;\n        return attribute ? \"Yes\" : \"No\";\n    }\n\n    @Override\n    public Boolean convertToEntityAttribute(String dbData) {\n        if (dbData == null) return null;\n        return \"Yes\".equalsIgnoreCase(dbData);\n    }\n}\n\n// on the entity field\n@Convert(converter = BooleanToStringConverter.class)\nprivate Boolean isMonitor;",
+  ln:["hibGuide"] },
+{ n:16, t:"role", q:"What are @Embeddable and @Embedded? What is @AttributeOverrides?",
+  en:"**@Embeddable** defines a **value object** (like Address) that has **no identity of its own**, and **@Embedded** places it inside an entity so its fields become **columns of the same table**. If an entity embeds the same type twice, **@AttributeOverrides** gives each copy different column names to avoid a clash.",
+  hi:"Address ka apna id ya table nahi hota, wo Student ka hissa hai (composition). Student table mein house_number, street, city jaise columns aa jaate hain. Do address (current, permanent) honge to column naam takraayenge, tab AttributeOverrides.",
+  code:"@Embeddable\npublic class Address {\n    private String houseNumber;\n    private String street;\n    private String city;\n    private String state;\n    private String pinCode;\n}\n\n// inside Student\n@Embedded\n@AttributeOverrides({\n    @AttributeOverride(name = \"city\",\n        column = @Column(name = \"current_city\")),\n    @AttributeOverride(name = \"pinCode\",\n        column = @Column(name = \"current_pincode\"))\n    // ...override every field the same way\n})\nprivate Address currentAddress;",
+  ln:["hibGuide"] },
+{ n:17, t:"role", q:"What is @ElementCollection?",
+  en:"**@ElementCollection** stores a **collection of basic or embeddable values** (like Set<String> skills) **without making them entities**. Hibernate creates a **separate collection table**, named with **@CollectionTable**, that holds a **foreign key** to the owner and the value column.",
+  hi:"Skills jaisi chhoti list ke liye alag entity banane ki zarurat nahi. Alag table banti hai student_skills (student_id, skill_name).",
+  code:"@ElementCollection\n@CollectionTable(\n    name = \"student_skills\",\n    joinColumns = @JoinColumn(name = \"student_id\"))\n@Column(name = \"skill_name\")\nprivate Set<String> skills = new HashSet<>();",
+  ln:["hibGuide"] },
+
+{ n:18, t:"jwt", q:"What is the difference between EntityManagerFactory, EntityManager and Persistence Context?",
+  en:"**EntityManagerFactory** is a **long-lived, application-scoped factory** (one per app) that creates EntityManagers. **EntityManager** is the **short-lived, thread-bound API** I call (persist, find, remove). Each EntityManager works with a **Persistence Context**: an in-memory workspace, also the **first-level (L1) cache**, that tracks the entities it loaded or saved.",
+  hi:"Factory ek baar banti hai, poori app ke liye. EntityManager har transaction ke liye naya banta hai aur thread-safe nahi hota. Persistence Context EntityManager ke andar ka notebook hai jo yaad rakhta hai kaun se objects load hue.",
+  fig:["emstack"],
+  table:{ head:["Component","JPA (specification)","Hibernate (implementation)"], rows:[["Factory","EntityManagerFactory","SessionFactory"],["API object","EntityManager","Session"],["Concrete class","(sirf contract)","SessionImpl"]] },
+  note:{t:"Yaad rakho", x:"Hum hamesha JPA ke EntityManager se baat karte hain. Andar se wo Hibernate ke Session ko call karta hai."},
+  ln:["hibGuide","jpaSpec"] },
+{ n:19, t:"jwt", q:"Why do we use @PersistenceContext to inject the EntityManager?",
+  en:"**EntityManager is not thread-safe**, but Spring beans such as repositories are **singletons**. **@PersistenceContext** injects a **shared EntityManager proxy** instead of a real EntityManager. When a **@Transactional** method runs, the proxy hands out the **EntityManager and Persistence Context bound to that thread's transaction**.",
+  hi:"Singleton repository mein ek hi object sab threads use karte hain. Proxy har call ko us thread ke transaction wale EntityManager par bhej deta hai, isliye data mein gadbad nahi hoti.",
+  code:"@Repository\npublic class StudentRepository {\n\n    @PersistenceContext\n    private EntityManager entityManager;   // a thread-bound proxy\n\n    public void save(Student s) { entityManager.persist(s); }\n}",
+  note:{t:"Extra (mera note)", x:"Spring Boot mein constructor ya @Autowired se EntityManager inject karne par bhi shared proxy hi milta hai. Interview ke liye safe answer: injected object real EntityManager nahi, thread-bound proxy hai."},
+  ln:["hibGuide","springTx"] },
+{ n:20, t:"jwt", q:"What is the Persistence Context, and how does the L1 cache work?",
+  en:"The **Persistence Context** is Hibernate's **first-level (L1) cache**, scoped to one transaction. On **find()**, Hibernate first checks this cache. If the entity is there, it returns it **without any SQL**. If not, it runs a **SELECT**, stores the entity in the cache and returns it.",
+  hi:"Same transaction mein same id dobara find karo to database nahi jaata. Faltu SELECT bachte hain. L1 cache har transaction ka alag hota hai aur EntityManager ke saath khatam ho jaata hai.",
+  fig:["l1"],
+  code:"@Transactional\npublic void demo() {\n    Student a = em.find(Student.class, 1L); // SELECT fired\n    Student b = em.find(Student.class, 1L); // from L1 cache, no SQL\n    System.out.println(a == b);             // true: same object\n}",
+  ln:["hibGuide"] },
+{ n:21, t:"jwt", q:"How does automatic update work? What are dirty checking and write-behind?",
+  en:"**Dirty checking** is how Hibernate updates without an explicit update call. A **managed** entity is loaded together with a **snapshot**. When I change it with setters and the **transaction commits (flush)**, Hibernate **compares** the entity with the snapshot and, if it changed, **generates an UPDATE**. Changes are sent together at flush time, which is the **write-behind** pattern.",
+  hi:"Isi liye JPA mein update() method nahi hota. Entity ko transaction ke andar fetch karo, setter se badlo, aur commit par Hibernate khud UPDATE chala deta hai. Har setter par SQL nahi chalta, sab badlav ek saath flush hote hain.",
+  fig:["dirty"],
+  code:"@Transactional\npublic void updateStudent(StudentRequest request, Long id) {\n    Student student = studentRepository.findById(id);   // Managed\n    student.setName(request.getName());                // heap change\n    student.setEmail(request.getEmail());\n    student.setAge(request.getAge());\n    // no save() / update() needed: UPDATE runs at commit\n}",
+  note:{w:1, t:"Dhyan do", x:"Entity Managed state mein honi chahiye. Detached entity ko badalne se UPDATE nahi chalta."},
+  ln:["hibGuide"] },
+{ n:22, t:"jwt", q:"What are the four entity lifecycle states in Hibernate?",
+  en:"**Transient**: a new object created with **new**, not tracked, no DB row. **Managed (Persistent)**: tracked in the **Persistence Context**, and changes are synced automatically. **Detached**: was managed, but the context closed or **detach() / clear()** was called, so changes are ignored. **Removed**: marked for deletion, and the **DELETE** runs at flush.",
+  hi:"Transient = naya object, Hibernate ko pata nahi. Managed = Hibernate dekh raha hai, badlav par UPDATE. Detached = pehle dekh raha tha, ab nahi. Removed = delete ke liye mark.",
+  fig:["life"],
+  ln:["hibGuide"] },
+{ n:23, t:"jwt", q:"Which EntityManager methods should you know?",
+  en:"The key methods are **persist()** (Transient to Managed), **find()** (load by primary key into Managed), **merge()** (Detached to Managed, returns the managed copy), **detach()** and **clear()** (to Detached), **remove()** (Managed to Removed), plus **contains()**, **flush()** and **refresh()**.",
+  hi:"Table yaad kar lo, interview mein 'merge kab use karte ho' bahut puchha jaata hai.",
+  table:{ head:["Method","Transition","Kaam"], rows:[["persist(e)","Transient to Managed","Naya entity save karo"],["find(Class, id)","DB to Managed","PK se load, pehle L1 cache dekhta hai"],["merge(e)","Detached to Managed","Detached ki managed copy banata hai"],["detach(e)","Managed to Detached","Ek entity ko tracking se hatao"],["clear()","All to Detached","Poora L1 cache khali"],["remove(e)","Managed to Removed","Delete ke liye mark"],["contains(e)","-","Kya entity managed hai?"],["flush()","-","Pending changes ka SQL abhi DB ko bhejo"],["refresh(e)","-","DB se dobara load, entity ki state overwrite"]] },
+  note:{w:1, t:"Dhyan do", x:"merge() ka return value hi managed hota hai, wo object nahi jo tumne pass kiya."},
+  ln:["hibGuide"] },
+{ n:24, t:"jwt", q:"How do you insert a huge number of records without OutOfMemoryError?",
+  en:"Persisting a huge list in one loop fills the **Persistence Context** with every entity and can cause **OutOfMemoryError**. I process in **batches**: after every N records (for example 100) I call **flush()** to send the SQL to the database and **clear()** to empty the L1 cache.",
+  hi:"10 lakh objects L1 cache mein jama honge to memory khatam. Har 100 par flush karke DB ko bhejo aur clear karke memory khali karo.",
+  code:"@Transactional\npublic void saveAllInBatches(List<Student> studentList) {\n    int batchSize = 100;\n\n    for (int i = 0; i < studentList.size(); i++) {\n        entityManager.persist(studentList.get(i));\n\n        if (i > 0 && i % batchSize == 0) {\n            entityManager.flush();   // send INSERTs to DB\n            entityManager.clear();   // free L1 cache memory\n        }\n    }\n    entityManager.flush();\n    entityManager.clear();\n}",
+  note:{t:"Extra (mera note)", x:"GenerationType.IDENTITY ke saath Hibernate har INSERT turant chalata hai (ID chahiye), isliye JDBC insert batching disable ho jaati hai. flush() aur clear() memory bachate hain, speed ke liye batching ka alag setup chahiye."},
+  ln:["hibGuide"] },
+{ n:25, t:"jwt", q:"How does @Transactional work compared to SQL and plain Hibernate transactions?",
+  en:"**@Transactional** wraps a method in a database transaction using **Spring AOP**: an **around advice** begins the transaction before the method, **commits** if it finishes normally and **rolls back** on failure. It replaces hand-written **BEGIN / COMMIT / ROLLBACK** in SQL and **session.beginTransaction() / tx.commit()** in raw Hibernate.",
+  hi:"Pehle har method mein transaction ka code likhna padta tha. Ab sirf annotation lagao, Spring AOP method se pehle begin aur baad mein commit ya rollback khud karta hai. Service layer par lagate hain.",
+  table:{ head:["Level","Kaise"], rows:[["SQL","BEGIN; UPDATE ...; COMMIT; (error par ROLLBACK;)"],["Raw Hibernate","session.beginTransaction(); ... tx.commit(); catch: tx.rollback();"],["Spring","@Transactional + Spring AOP (around advice)"]] },
+  pts:["Transaction ki boundary hi Persistence Context ki lifetime hoti hai.","Service layer ke method par lagao, repository par nahi."],
+  ln:["springTx"] },
+
+{ n:26, t:"web", q:"What are relationship cardinality, directionality, and the owning vs inverse side?",
+  en:"JPA relationships are **@ManyToOne, @OneToMany, @OneToOne and @ManyToMany**. They can be **unidirectional** (one entity references the other) or **bidirectional** (both do). In a bidirectional mapping one side is the **owning side**, which **holds the foreign key** and drives the SQL. The other is the **inverse side**, marked with **mappedBy**, and it does not manage the foreign key.",
+  hi:"Owner wo hai jiski table mein foreign key column hai. Inverse side par mappedBy = 'owner ke field ka naam' likhte hain. Relational database object ko ek column mein nahi rakh sakta, wo foreign key, unique constraint aur join table se rishta banata hai.",
+  table:{ head:["Type","Example"], rows:[["@ManyToOne","Kai students, ek department"],["@OneToMany","Ek department, kai students"],["@OneToOne","Ek user, ek profile"],["@ManyToMany","Kai students, kai courses"]] },
+  pts:["Unidirectional: Student ke paas Department hai, Department ke paas students ki list nahi.","Bidirectional: dono ke paas ek dusre ka reference hai."],
+  ln:["hibGuide"] },
+{ n:27, t:"web", q:"How do @ManyToOne and @OneToMany work, and where does the foreign key go?",
+  en:"In **@ManyToOne / @OneToMany**, the **'many' side always holds the foreign key** (students.department_id). **Student** is the **owning side** with **@ManyToOne + @JoinColumn**. **Department** is the **inverse side** with **@OneToMany(mappedBy = 'department')**, and JPA creates no join table for it.",
+  hi:"Foreign key hamesha 'many' side ki table mein hoti hai. Agar 'one' side par rakhte to primary key repeat hoti aur normalization toot jaati.",
+  fig:["fk"],
+  code:"@Entity\npublic class Student {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String name;\n\n    @ManyToOne(optional = false)\n    @JoinColumn(name = \"department_id\", nullable = false)\n    private Department department;          // owning side\n}\n\n@Entity\npublic class Department {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String name;\n\n    @OneToMany(mappedBy = \"department\")\n    private List<Student> students = new ArrayList<>();   // inverse side\n}",
+  note:{w:1, t:"Dhyan do", x:"Bidirectional mein dono sides memory mein khud sync karni padti hain, warna object graph stale rehta hai. Entity ke andar helper method banao."},
+  ln:["hibGuide"] },
+{ n:28, t:"web", q:"How does @OneToOne work?",
+  en:"In **@OneToOne** the foreign key can sit in either table, but it must have a **UNIQUE constraint**. Without it, many rows could point to the same parent and the mapping is really many-to-one. The owning side uses **@OneToOne + @JoinColumn(name, unique = true)**; the inverse side uses **@OneToOne(mappedBy = ...)**.",
+  hi:"Unique constraint hi 'ek ke liye ek' ko SQL level par pakka karta hai. Bina uske do profiles ek hi user ko point kar sakte hain.",
+  code:"@Entity\npublic class Profile {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String bio;\n\n    @OneToOne\n    @JoinColumn(name = \"user_id\", unique = true)   // owning side\n    private User user;\n}\n\n@Entity\npublic class User {\n    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String name;\n\n    @OneToOne(mappedBy = \"user\")                  // inverse side\n    private Profile profile;\n}",
+  ln:["hibGuide"] },
+{ n:29, t:"web", q:"How does @ManyToMany work, and why is a join table needed?",
+  en:"**@ManyToMany** needs a **join table**, because a foreign key on either side would repeat rows. The owning side declares **@JoinTable(name, joinColumns, inverseJoinColumns)**. The join table holds **two foreign keys** that together form a **composite primary key**. The other side uses **mappedBy**.",
+  hi:"Student kai courses le sakta hai aur course mein kai students hote hain. Kisi bhi ek table mein FK rakhoge to rows duplicate honge, isliye beech mein ek alag join table.",
+  fig:["m2m"],
+  code:"@Entity\npublic class Student2 {\n    @ManyToMany\n    @JoinTable(\n        name = \"student_course\",\n        joinColumns = @JoinColumn(name = \"student_id\"),\n        inverseJoinColumns = @JoinColumn(name = \"course_id\"))\n    private List<Course> courses = new ArrayList<>();   // owning side\n}\n\n@Entity\npublic class Course {\n    @ManyToMany(mappedBy = \"courses\")\n    private List<Student2> students = new ArrayList<>(); // inverse side\n}",
+  table:{ head:["Mapping","Foreign key kahan","Config"], rows:[["@ManyToOne","'Many' table mein","@JoinColumn"],["@OneToMany","Inverse side, FK nahi","mappedBy"],["@OneToOne","Owning table mein + UNIQUE","@JoinColumn(unique = true)"],["@ManyToMany","Alag join table mein","@JoinTable + mappedBy"]] },
+  ln:["hibGuide"] },
+{ n:30, t:"web", q:"What is cascading in JPA?",
+  en:"**Cascading** passes an operation from a **parent** entity to its **children**. **CascadeType.PERSIST**: saving the parent also saves new children. **CascadeType.REMOVE**: deleting the parent deletes its children. **CascadeType.ALL** applies PERSIST, MERGE, REMOVE, REFRESH and DETACH.",
+  hi:"Bina cascade ke department save karne ke baad har student ko alag save() karna padta. Bina REMOVE ke department delete karoge to foreign key constraint error aayega.",
+  code:"@OneToMany(mappedBy = \"department\", cascade = CascadeType.PERSIST)\nprivate List<Student> students;\n\n// With cascade, one call saves the department and its students\ndepartmentRepository.save(department);",
+  note:{w:1, t:"Error jo REMOVE ke bina aata hai", x:"Cannot delete or update a parent row: a foreign key constraint fails"},
+  pts:["Parent-child (master-detail) rishte mein use karo, jaise Department to Student ya Order to OrderItems.","CascadeType.ALL sochkar lagao: delete bhi child tak pahunchta hai."],
+  ln:["hibGuide"] },
+{ n:31, t:"web", q:"What is the difference between lazy and eager loading?",
+  en:"**LAZY** loading fetches the main entity first and loads related entities **only when they are accessed**, using **proxies**. **EAGER** loading fetches related entities **immediately**, usually with a **join**. Lazy avoids loading a huge object graph into memory when it is not needed.",
+  hi:"Student fetch karte hi Department, Profile, Courses sab laana mehenga padta hai. Lazy mein Hibernate sirf proxy rakhta hai, getDepartment() call par hi SQL chalti hai.",
+  code:"@ManyToOne(fetch = FetchType.LAZY)\n@JoinColumn(name = \"department_id\")\nprivate Department department;",
+  note:{t:"Yaad rakho", x:"JPA defaults: @ManyToOne aur @OneToOne = EAGER. @OneToMany aur @ManyToMany = LAZY."},
+  pts:["Lazy khud kharab nahi hai: ye bade object graph se memory bachata hai.","Lazy field ko persistence context band hone ke baad access karoge to LazyInitializationException aata hai."],
+  ln:["hibGuide"] },
+{ n:32, t:"web", q:"What is the N+1 query problem, and how do you fix it?",
+  en:"The **N+1 problem**: one query loads **N parent rows**, then each parent's **lazy association** fires **one extra query**, giving **1 + N queries**. For 100 students that is **101 SQL calls**. It is caused by **accessing lazy relations inside a loop**, not by lazy loading itself.",
+  hi:"L1 cache thodi madad karta hai: agar 100 students sirf 3 departments se jude hain to 1 + 3 queries. Par ye guarantee nahi, aur data bada ho to app bahut slow ho jaati hai.",
+  fig:["n1"],
+  code:"List<Student> students = studentRepository.findAll();   // 1 query\n\nfor (Student s : students) {\n    // each call fires 1 more SELECT (lazy department)\n    System.out.println(s.getDepartment().getName());\n}",
+  note:{t:"Fix", x:"@EntityGraph (agla concept), JOIN FETCH in JPQL, ya batch fetching."},
+  ln:["n1","hibGuide"] },
+{ n:33, t:"web", q:"What is @EntityGraph?",
+  en:"**@EntityGraph(attributePaths = {...})** on a repository method tells Hibernate to **fetch the listed associations eagerly with a JOIN for that query only**, while the mapping itself stays **LAZY**. It turns **1 + N queries into 1 query**.",
+  hi:"Mapping lazy hi rehti hai, par is ek method ke liye department aur profile ek hi JOIN query mein aa jaate hain. N+1 ka sabse seedha Spring Data wala fix.",
+  code:"public interface StudentRepository extends JpaRepository<Student, Long> {\n\n    @EntityGraph(attributePaths = {\"department\", \"profile\"})\n    List<Student> findAll();\n}",
+  ln:["sdjQuery","n1"] },
+
+{ n:34, t:"prod", q:"Why Spring Data JPA, and what is the difference between Spring Data and Spring Data JPA?",
+  en:"**Spring Data JPA** removes the repository boilerplate: I **declare an interface** and Spring **generates the implementation at runtime**. **Spring Data** is the umbrella module that gives a uniform **Repository model** for many stores (JPA, MongoDB, Redis, Cassandra). **Spring Data JPA** is its implementation for **SQL databases**, built on **JPA and Hibernate**.",
+  hi:"Hibernate ke baad bhi har entity ke liye wahi CRUD code repeat karna padta tha. Ab sirf interface likho, implementation Spring bana deta hai.",
+  code:"public interface StudentRepository\n        extends JpaRepository<Student, Long> {\n    // save, findById, findAll, deleteById ... already available\n}",
+  ln:["sdjRef"] },
+{ n:35, t:"prod", q:"What is the Spring Data repository interface hierarchy?",
+  en:"**Repository** is a marker interface. **CrudRepository** adds CRUD (**save, findById, existsById, deleteById, count**). **PagingAndSortingRepository** adds **sorting and pagination**. The **List** variants return **List** instead of Iterable. **JpaRepository** extends both List variants and adds JPA extras like **flush, saveAndFlush, deleteAllInBatch**.",
+  hi:"Zyadatar JpaRepository hi use hota hai kyunki usme upar ke sab features aur JPA ke extra methods hote hain.",
+  fig:["repo"],
+  ln:["sdjRepo"] },
+{ n:36, t:"prod", q:"How does Spring Data JPA work internally?",
+  en:"At startup Spring creates a **dynamic proxy** for my repository interface. **Standard methods** (save, findById, delete) are forwarded to **SimpleJpaRepository**, which calls the **EntityManager** (persist, merge, find, remove). **Custom method names** like findByEmail go to the **query method parser**, which builds the JPQL or SQL from the name.",
+  hi:"Tumne implementation likhi hi nahi, to code chalta kaise hai? Runtime par Spring ek proxy object banata hai aur har call ko sahi jagah bhej deta hai.",
+  fig:["proxy"],
+  ln:["sdjRepo"] },
+{ n:37, t:"prod", q:"What does save() do internally, and is saveAll() a bulk insert?",
+  en:"**save()** calls **EntityManager.persist()** for a **new** entity and **merge()** for an existing or detached one. The data goes to the **Persistence Context** and reaches the database at **flush / commit**. **saveAll()** is **not** a single bulk INSERT: it loops and calls save() for each entity.",
+  hi:"'saveAll fast hai' ek myth hai. Wo andar loop mein save() chalata hai. Asli speed ke liye batching ka alag configuration chahiye.",
+  note:{w:1, t:"Dhyan do", x:"Interview mein bolo: save() = persist ya merge, aur DB tak data flush par pahunchta hai."},
+  ln:["sdjRepo"] },
+{ n:38, t:"prod", q:"What are derived query methods?",
+  en:"A **derived query method** is parsed from its name as **[Subject] + By + [Predicate]**. The **subject** (**find, exists, count, delete, findTop3, findDistinct**) is the action and the **predicate** holds the **conditions**. Spring generates the query for me, so I write no JPQL.",
+  hi:"Method ka naam hi query ban jaata hai. findByEmailAndAge likhoge to WHERE email = ? AND age = ? bann jaata hai.",
+  table:{ head:["Method","Matlab"], rows:[["findByEmail(email)","email barabar"],["findByEmailAndAge(email, age)","email AND age"],["findByNameStartingWith / EndingWith / Containing","LIKE patterns"],["findByEmailLike(pattern)","LIKE with apna pattern"],["findByAgeGreaterThan / LessThan / Between","Comparison"],["findByAgeIn(Collection)","IN list"],["findByEmailIsNull / IsNotNull","NULL check"],["findByNameOrderByAdmissionDateDesc","Sorting naam mein hi"]] },
+  note:{t:"Yaad rakho", x:"Naam bahut lamba aur padhne mein mushkil ho jaaye to @Query use karo."},
+  ln:["sdjQuery"] },
+{ n:39, t:"prod", q:"What is @Query, and how do JPQL and native SQL differ?",
+  en:"**@Query** lets me write a custom query. **JPQL** (the default) works on **entity classes and fields** (SELECT s FROM Student s). **Native SQL** (**nativeQuery = true**) works on **table and column names**. I bind parameters with **:name** and **@Param**. In JPQL a join can be **explicit** (JOIN s.department d) or **implicit** (s.department.active).",
+  hi:"JPQL Java entity ke naam par chalti hai, database independent hai. Native SQL seedha table par chalti hai, DB-specific hoti hai. Implicit join mein JOIN likhe bina dot (.) se rishta jod dete ho, Hibernate khud JOIN banata hai.",
+  code:"// JPQL (entity names)\n@Query(\"SELECT s FROM Student s WHERE s.email = :email\")\nOptional<Student> findByEmailCustom(@Param(\"email\") String email);\n\n// Native SQL (table names)\n@Query(value = \"SELECT * FROM student WHERE email = :email\", nativeQuery = true)\nOptional<Student> findByEmailNative(@Param(\"email\") String email);\n\n// Explicit join\n@Query(\"SELECT s FROM Student s JOIN s.department d WHERE d.active = true\")\nList<Student> findInActiveDepartments();\n\n// Implicit join\n@Query(\"SELECT s FROM Student s WHERE s.department.active = true\")\nList<Student> findInActiveDepartmentsImplicit();",
+  ln:["sdjQuery"] },
+{ n:40, t:"prod", q:"How do Sort, Pageable, Page and Slice work?",
+  en:"**Sort** adds an ORDER BY. **Pageable / PageRequest.of(pageIndex, size, sort)** adds pagination, and the **page index starts at 0**. **Page<T>** runs **2 queries** (the data plus **COUNT(*)**) and knows total pages and total elements. **Slice<T>** runs **1 query** (it fetches limit + 1 rows) and only knows **hasNext()**, so it is faster for **infinite scroll**.",
+  hi:"Total pages dikhane hain (1, 2, 3 ... 50) to Page. 'Load more' ya infinite scroll mein total ki zarurat nahi, to Slice, ek query kam.",
+  code:"Sort sort = Sort.by(\"name\").ascending().and(Sort.by(\"age\").descending());\n\nPageable pageable = PageRequest.of(0, 10, Sort.by(\"name\").ascending());\nPage<Student> page = studentRepository.findAll(pageable);\n\nList<Student> content = page.getContent();\nint totalPages = page.getTotalPages();\nlong totalElements = page.getTotalElements();\nboolean hasNext = page.hasNext();",
+  table:{ head:["Feature","Page<T>","Slice<T>"], rows:[["SQL queries","2 (SELECT + COUNT)","1 (limit + 1 rows)"],["Total count","Pata hai","Nahi pata"],["hasNext()","Haan","Haan"],["Speed","Bade data par COUNT se slow","Tez, infinite scroll ke liye"]] },
+  ln:["sdjRepo"] },
+{ n:41, t:"prod", q:"What does rollbackFor do in @Transactional?",
+  en:"By default Spring **rolls back for unchecked exceptions** (**RuntimeException** and **Error**) and **does not roll back for checked exceptions** such as IOException or SQLException, so the transaction commits. To roll back for checked exceptions I set **@Transactional(rollbackFor = Exception.class)** or a specific exception class.",
+  hi:"Sabse common bug: checked exception throw hua, developer ko laga rollback ho gaya, par default mein commit ho jaata hai. rollbackFor se is default ko override karte ho.",
+  code:"// Roll back for a specific checked exception\n@Transactional(rollbackFor = IOException.class)\npublic void createOrder(Order order) throws IOException {\n    // if IOException is thrown, the transaction rolls back\n}\n\n// Roll back for all checked and unchecked exceptions\n@Transactional(rollbackFor = Exception.class)\npublic void processPayment(Payment payment) throws Exception {\n    // ...\n}",
+  table:{ head:["Exception type","Default behaviour"], rows:[["RuntimeException, Error (unchecked)","Rollback"],["Checked (IOException, SQLException, custom)","Commit, rollback nahi"]] },
+  ln:["springRollback","springTx"] }
+];
+
+var PRACTICE = [
+ ["Update ke liye save() kyun nahi likha?","Entity transaction ke andar Managed hai. Commit par dirty checking changes pakadti hai aur UPDATE chala deti hai."],
+ ["100 students nikale aur 101 queries chalin","N+1 problem: lazy relation loop mein access hui. Fix: @EntityGraph, JOIN FETCH ya batch fetching."],
+ ["Detached entity ka naam badla, DB mein kyun nahi gaya?","Detached entity ko Hibernate track nahi karta. merge() se managed copy lo, ya entity ko transaction ke andar fetch karo."],
+ ["10 lakh records insert karne hain","Batch mein karo: har 100 par flush() aur clear(), warna OutOfMemoryError. IDENTITY batching disable karta hai."],
+ ["Checked exception aaya par data save ho gaya","Default mein checked exception par rollback nahi hota. rollbackFor = Exception.class lagao."],
+ ["Department delete karne par foreign key error","Students (children) maujood hain. CascadeType.REMOVE lagao ya pehle children hatao."],
+ ["Page aur Slice mein kab kya?","Total count chahiye to Page (2 queries). Infinite scroll mein Slice (1 query)."],
+ ["mappedBy kis side par lagta hai?","Inverse side par, jiski table mein FK nahi hai. Owning side @JoinColumn ke saath FK rakhti hai."]
+];
+
+var CHECK = ["JDBC steps: URL, DriverManager, Connection","Statement vs PreparedStatement","try-with-resources aur ResultSet cursor","JDBC transaction: commit and rollback","ORM aur impedance mismatch","JPA vs Hibernate vs JDBC","ddl-auto options","Entity annotations (@Entity, @Id, @Column)","@Embedded vs @ElementCollection","EntityManager, Persistence Context, L1 cache","Dirty checking aur write-behind","Entity lifecycle: 4 states","Owning side vs inverse side (mappedBy)","Cascade types","Lazy vs Eager aur N+1 fix","Repository hierarchy aur internal proxy","Page vs Slice","@Transactional rollbackFor"];
+
+var LINKROWS = [
+ ["core","JDBC basics aur transactions","1-9",["jdbcTut","jdbcTx","jdbcApi"]],
+ ["auth","ORM, JPA vs Hibernate, configuration","10-12",["hibDocs","jpaSpec","bootData"]],
+ ["role","Entity mapping annotations","13-17",["hibGuide"]],
+ ["jwt","Persistence context, dirty checking, lifecycle","18-24",["hibGuide"]],
+ ["jwt","@Transactional aur Spring transactions","19, 25",["springTx"]],
+ ["web","Relationships, cascade, lazy loading","26-31",["hibGuide"]],
+ ["web","N+1 problem aur EntityGraph","32, 33",["n1","sdjQuery"]],
+ ["prod","Spring Data JPA, repositories, queries","34-40",["sdjRef","sdjRepo","sdjQuery"]],
+ ["prod","Transaction rollback rules","41",["springRollback"]]
+];
+
+/* ---------- topic-wise structure ---------- */
+var CH = [
+ { t: "core", title: "JDBC: Java se database tak", qs: [1, 2, 3],
+   big: "Pehle bina Spring aur bina ORM ke samjho ki Java database se baat kaise karti hai. Hibernate aur Spring Data JPA, dono isi ke upar bane hain, isliye ye poori neev hai.",
+   learn: ["JDBC kya hai aur driver ka role", "Kaun se interfaces use hote hain", "Connection kaise banti hai: URL, username, password"],
+   remember: "Interface java.sql ka hai, implementation driver ki. Isliye code vendor se independent rehta hai." },
+ { t: "core", title: "SQL chalana: safe tareeka", qs: [4, 5, 6, 7],
+   big: "Connection milne ke baad SQL chalani hai. Yahan teen cheezein sabse zyada puchhi jaati hain: kaun sa execute method kab, PreparedStatement kyun, aur resources band kaise karein.",
+   learn: ["executeUpdate, executeQuery, execute ka farak", "SQL injection se PreparedStatement kaise bachata hai", "ResultSet cursor aur try-with-resources"],
+   remember: "Hamesha PreparedStatement aur try-with-resources. String jodkar SQL kabhi nahi." },
+ { t: "core", title: "JDBC transactions aur raw JDBC ki limits", qs: [8, 9],
+   big: "Ek kaam ke kai SQL steps hon to ya to sab hon ya koi nahi. JDBC mein ye khud likhna padta hai. Poora boilerplate dekhkar samajh aata hai ki Spring JDBC aur ORM jaise tools kyun aaye.",
+   learn: ["setAutoCommit, commit, rollback", "Raw JDBC ki dikkatein", "In dikkaton ke liye Spring JDBC aur ORM kyun aaye"],
+   remember: "JDBC ka dard (boilerplate, manual mapping, manual transaction) hi Spring JDBC aur ORM ki wajah hai." },
+ { t: "role", title: "Spring JDBC: JdbcTemplate, DataSource, HikariCP", qs: [42, 43, 44, 45, 46, 47, 48, 49],
+   big: "Raw JDBC ka boilerplate Spring ne kaise hataya: JdbcTemplate, connection pool aur DataSource. SQL abhi bhi tum likhte ho, bas connection, statement aur exception ka kaam Spring sambhalta hai.",
+   learn: ["JdbcTemplate aur Template pattern", "Connection pool, HikariCP aur DataSource setup", "update, query, queryForObject, RowMapper aur DataAccessException"],
+   remember: "Spring JDBC = raw JDBC ka boilerplate Spring ke paas, SQL tumhare paas. ORM mein SQL bhi ORM ke paas." },
+ { t: "auth", title: "ORM, JPA, Hibernate aur setup", qs: [10, 11, 12],
+   big: "Ab ORM ki duniya. Pehle samjho ORM kya hai aur impedance mismatch kya hota hai. Phir teen naam ka farak saaf karo: JPA, Hibernate, JDBC. Uske baad Spring Boot setup aur ddl-auto.",
+   learn: ["ORM aur impedance mismatch", "JPA rulebook hai, Hibernate implementation", "Layers aur ddl-auto options"],
+   remember: "JPA specification hai, Hibernate uska default implementation, JDBC neeche ki plumbing." },
+ { t: "auth", title: "Entity mapping", qs: [13, 14, 15, 16, 17],
+   big: "Java class ko table se kaise jodte hain. Annotations ek baar samajh gaye to baaki sab, relationships bhi, isi par bante hain.",
+   learn: ["Basic annotations: @Entity, @Id, @Column", "Enum, date, BigDecimal, @Lob, @Transient", "Embedded objects aur element collections"],
+   remember: "Enum hamesha EnumType.STRING. Value object ke liye @Embeddable, chhoti list ke liye @ElementCollection." },
+ { t: "jwt", title: "EntityManager aur Persistence Context", qs: [18, 19, 20, 23],
+   big: "Hibernate ka dil. Entity ko Hibernate kaise yaad rakhta hai, L1 cache kya hai, aur EntityManager thread-safe kyun nahi hota.",
+   learn: ["Factory, EntityManager, Persistence Context ka rishta", "@PersistenceContext aur proxy", "L1 cache aur EntityManager ke methods"],
+   remember: "Persistence Context = L1 cache = ek transaction ka notebook." },
+ { t: "jwt", title: "Entity lifecycle, dirty checking, batching", qs: [22, 21, 24],
+   big: "Entity ki zindagi ke 4 stages, aur wo trick jisse update() ke bina UPDATE chal jaata hai. Interview ka favourite area yahi hai.",
+   learn: ["Transient, Managed, Detached, Removed", "Dirty checking aur write-behind", "Bade data ke liye flush() aur clear()"],
+   remember: "Managed entity badlo, commit par UPDATE khud ho jaata hai." },
+ { t: "web", title: "Relationships", qs: [26, 27, 28, 29, 30],
+   big: "Object graph ko tables se jodna: foreign key kahan jaayegi, owning side kaun hai, aur parent ke saath child ka kya hoga.",
+   learn: ["Cardinality aur owning vs inverse side", "ManyToOne, OneToMany, OneToOne, ManyToMany", "Cascading"],
+   remember: "Foreign key owning side ki table mein hoti hai, mappedBy inverse side par lagta hai." },
+ { t: "web", title: "Fetching: lazy, eager aur N+1", qs: [31, 32, 33],
+   big: "Related data kab load ho? Galat jawab performance bigaadta hai, aur N+1 problem uska sabse famous nateeja hai.",
+   learn: ["Lazy vs eager aur unke defaults", "N+1 kaise hota hai", "EntityGraph aur JOIN FETCH se fix"],
+   remember: "Lazy kharab nahi hai. Loop mein lazy relation access karna kharab hai." },
+ { t: "prod", title: "Spring Data JPA", qs: [34, 35, 36, 37, 38, 39, 40],
+   big: "Hibernate ke upar ek aur layer jo repository boilerplate khatam kar deti hai. Interface likho, implementation Spring bana deta hai. Queries aur pagination bhi yahin aate hain.",
+   learn: ["Repository hierarchy aur internal proxy", "save(), derived queries, @Query", "Sorting aur pagination"],
+   remember: "Simple ke liye derived queries, complex ke liye @Query, badi list ke liye Pageable." },
+ { t: "prod", title: "@Transactional", qs: [25, 41],
+   big: "Spring ka transaction management: kaise kaam karta hai aur kab rollback hota hai, aur kab nahi.",
+   learn: ["AOP around advice", "Default rollback rules", "rollbackFor"],
+   remember: "Default rollback sirf unchecked exceptions (RuntimeException, Error) par hota hai." }
+];
+
+var TITLES = {
+ 1: "JDBC kya hai", 2: "Interfaces aur driver", 3: "Connection kaise banti hai",
+ 4: "executeUpdate, executeQuery, execute", 5: "Statement vs PreparedStatement", 6: "ResultSet aur cursor", 7: "try-with-resources",
+ 8: "JDBC transaction", 9: "Raw JDBC ki limits", 10: "ORM aur impedance mismatch",
+ 11: "JPA vs Hibernate vs JDBC", 12: "Configuration aur ddl-auto",
+ 13: "Basic annotations", 14: "Special types", 15: "AttributeConverter", 16: "@Embeddable aur @Embedded", 17: "@ElementCollection",
+ 18: "EntityManagerFactory, EntityManager, Persistence Context", 19: "@PersistenceContext aur proxy", 20: "L1 cache", 23: "EntityManager ke methods",
+ 22: "Entity lifecycle: 4 states", 21: "Dirty checking aur write-behind", 24: "Batch processing: flush aur clear",
+ 26: "Cardinality, direction, owning side", 27: "ManyToOne aur OneToMany", 28: "OneToOne", 29: "ManyToMany aur join table", 30: "Cascading",
+ 31: "Lazy vs Eager loading", 32: "N+1 problem", 33: "EntityGraph",
+ 34: "Spring Data JPA kyun", 35: "Repository hierarchy", 36: "Internal working: proxy", 37: "save() aur saveAll()", 38: "Derived query methods", 39: "@Query: JPQL vs native SQL", 40: "Sort, Pageable, Page aur Slice",
+ 25: "@Transactional kaise kaam karta hai", 41: "rollbackFor"
+};
+
+/* ---------- Spring JDBC chapter: data (concepts 42-49) ---------- */
+L.springJdbc = ["Spring Framework: Data access with JDBC", "https://docs.spring.io/spring-framework/reference/data-access/jdbc.html"];
+L.hikari = ["HikariCP (GitHub)", "https://github.com/brettwooldridge/HikariCP"];
+
+PRIORITY.push(43, 44, 48);
+
+Object.assign(TITLES, {
+  42: "Raw JDBC vs Spring JDBC", 43: "JdbcTemplate aur Template pattern", 44: "Connection pooling aur HikariCP",
+  45: "DataSource aur Spring Boot setup", 46: "JdbcTemplate ke methods aur CRUD", 47: "RowMapper aur BeanPropertyRowMapper",
+  48: "Exception translation: DataAccessException", 49: "Spring JDBC vs JPA/Hibernate"
+});
+
+Q.push(
+{ n:42, t:"role", q:"Why Spring JDBC when we already have raw JDBC? What problem does it solve?",
+  en:"Raw **JDBC** makes you repeat the same **boilerplate** for every query: open a **Connection**, create a **PreparedStatement**, bind the parameters, execute, map the **ResultSet**, **close** the resources and handle the checked **SQLException**. **Spring JDBC** is a thin **abstraction layer** over JDBC that handles all these **static parts**, so you only write the **SQL**, the **parameters** and the **row mapping**. It does not replace JDBC, it wraps it.",
+  hi:"Raw JDBC mein har method mein wahi 6 kaam dohrane padte the. Spring ne dekha ki kuch cheezein hamesha same rehti hain aur kuch badalti hain. Same wali Spring sambhal leta hai, tum sirf SQL, values aur mapping likho.",
+  table:{ head:["Static (Spring sambhalta hai)","Dynamic (tum likhte ho)"], rows:[["Connection kholna aur manage karna","SQL query"],["PreparedStatement banana","Query ke parameters (values)"],["Connection aur Statement close karna","ResultSet ko Java object mein map karna (RowMapper)"],["Checked SQLException ko catch karke translate karna","Business logic"]] },
+  pts:["Raw JDBC ke 6 repeated steps: connection, statement, parameters, execute, close, exception handling.","Spring JDBC ka maksad raw JDBC ko khatam karna nahi, uske upar wrapper lagakar boilerplate hatana hai.","Developer sirf business logic aur SQL par dhyan deta hai."],
+  ln:["springJdbc"] },
+
+{ n:43, t:"role", q:"How does JdbcTemplate work internally? Which design pattern does it use?",
+  en:"**JdbcTemplate** is the central class of Spring JDBC and follows the **Template Design Pattern**: the **fixed algorithm** (borrow a **Connection** from the pool, create the **PreparedStatement**, bind parameters, execute, map the **ResultSet**, release resources, translate the **SQLException**) is implemented once by Spring, while the **varying parts** (the **SQL**, the **parameters** and the **RowMapper**) are supplied by the developer.",
+  hi:"Template pattern ka matlab: kaam ka fixed order Spring ne likh diya hai, tumhe bas beech ke blanks bharne hain: SQL, values aur RowMapper. Isliye JdbcTemplate ka ek method call poora raw JDBC flow chala deta hai.",
+  fig:["tmpl"],
+  note:{t:"Extra (mera note)", x:"spring-boot-starter-jdbc ke saath JdbcTemplate ka bean Spring Boot khud bana deta hai. Bas constructor mein inject kar lo."},
+  ln:["springJdbc"] },
+
+{ n:44, t:"role", q:"What is connection pooling, and what is HikariCP?",
+  en:"Opening a physical database connection is **expensive**: a **TCP handshake**, **authentication** and **session setup**. A **connection pool** keeps a set of **pre-created, reusable connections**. The application **borrows** one, uses it, and **close()** returns it to the pool instead of closing the physical connection. If every connection is busy, new requests **wait until a timeout**. **HikariCP** is the fast, production-grade pool that Spring Boot uses by **default**.",
+  hi:"Har request par naya connection banana bahut mehnga hai. 10,000 requests aayein to database hi baith jaayega. Pool pehle se kuch connections bana ke rakhta hai. Tum udhaar lete ho, kaam karte ho, close() karte ho to wo band nahi hota, wapas pool mein chala jaata hai.",
+  fig:["pool"],
+  pts:["Borrow: kaam shuru karte waqt pool se connection lo.","close() ka matlab pool mein wapas, physical connection band nahi hota.","Sab connections busy hon to naya request timeout tak wait karta hai.","spring-boot-starter-jdbc ke saath HikariCP default milta hai (spring-boot-starter-data-jpa ke andar bhi ye aata hai)."],
+  note:{t:"Extra (mera note)", x:"HikariCP ka default maximum-pool-size 10 hota hai. Pool badi karne se speed apne aap nahi badhti, pehle database ki connection limit dekho."},
+  ln:["hikari","springJdbc"] },
+
+{ n:45, t:"role", q:"What is a DataSource, and how does Spring Boot configure it?",
+  en:"**DataSource** (**javax.sql.DataSource**) is the standard JDBC interface for obtaining **Connections**. With Spring Boot the implementation is HikariCP's **HikariDataSource**. Boot's **auto-configuration** detects **spring-boot-starter-jdbc** and the database driver on the **classpath**, reads the **spring.datasource.*** properties from **application.properties**, creates a **HikariDataSource** bean and registers it in the **IoC container**.",
+  hi:"DataSource wo object hai jisse tum connection maangte ho. Tum bas starter aur properties do, baaki Spring Boot khud kar deta hai: HikariDataSource ka bean bana ke container mein daal deta hai.",
+  steps:["Classpath mein spring-boot-starter-jdbc aur database driver (jaise mysql-connector-j) milta hai.","application.properties se spring.datasource.* values padhta hai.","HikariDataSource ka bean banakar IoC container mein register kar deta hai."],
+  code:`<!-- pom.xml (version Spring Boot parent se aata hai) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+
+# application.properties
+spring.datasource.url=jdbc:mysql://localhost:3306/student_db
+spring.datasource.username=root
+spring.datasource.password=123456
+
+# optional HikariCP tuning
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.idle-timeout=30000`,
+  note:{w:true, t:"Extra (mera note)", x:"Real project mein password properties file mein hardcode mat karo. Environment variable ya secrets manager use karo."},
+  ln:["bootData","hikari"] },
+
+{ n:46, t:"role", q:"Which JdbcTemplate methods do you use for insert, update, delete and select?",
+  en:"**update(sql, params...)** runs **INSERT, UPDATE and DELETE** and returns the **affected row count** as an **int**. **query(sql, rowMapper)** runs a **SELECT** that returns **many rows** as a **List<T>**. **queryForObject(sql, rowMapper, params...)** runs a **SELECT** that is expected to return **exactly one row** as a single object.",
+  hi:"Yaad rakhne ka tareeka: badlav (insert, update, delete) ke liye update(). Bahut rows chahiye to query(). Sirf ek row chahiye to queryForObject().",
+  table:{ head:["Method","Kaam","Return type"], rows:[["update(sql, params...)","INSERT, UPDATE, DELETE","int (affected rows)"],["query(sql, rowMapper)","SELECT, kai rows","List<T>"],["queryForObject(sql, rowMapper, params...)","SELECT, sirf 1 row","T (single object)"]] },
+  pts:["SQL mein ? placeholders aur alag se params dete ho, isliye PreparedStatement bante hain aur SQL injection se bachav hota hai.","JdbcTemplate ko constructor injection se lo."],
+  code:`@Repository
+public class StudentRepository {
+
+    private final JdbcTemplate jdbcTemplate;
+    private final RowMapper<Student> rowMapper;
+
+    public StudentRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.rowMapper = new BeanPropertyRowMapper<>(Student.class);
+    }
+
+    public int createStudent(Student s) {
+        String sql = "INSERT INTO students (name, email, age) VALUES (?, ?, ?)";
+        return jdbcTemplate.update(sql, s.getName(), s.getEmail(), s.getAge());
+    }
+
+    public int updateStudent(Student s) {
+        String sql = "UPDATE students SET name = ?, email = ?, age = ? WHERE id = ?";
+        return jdbcTemplate.update(sql, s.getName(), s.getEmail(), s.getAge(), s.getId());
+    }
+
+    public int deleteStudent(Long id) {
+        return jdbcTemplate.update("DELETE FROM students WHERE id = ?", id);
+    }
+
+    public List<Student> getAllStudents() {
+        return jdbcTemplate.query("SELECT id, name, email, age FROM students", rowMapper);
+    }
+
+    public Student getStudentById(Long id) {
+        String sql = "SELECT id, name, email, age FROM students WHERE id = ?";
+        return jdbcTemplate.queryForObject(sql, rowMapper, id);
+    }
+}`,
+  note:{w:true, t:"Dhyan do", x:"queryForObject mein row na mile to null nahi milta, EmptyResultDataAccessException aata hai."},
+  ln:["springJdbc"] },
+
+{ n:47, t:"role", q:"What is a RowMapper, and when do you use BeanPropertyRowMapper?",
+  en:"**RowMapper<T>** is a **functional interface** with a single method, **mapRow(ResultSet rs, int rowNum)**, that converts **one row** of the ResultSet into a Java object. JdbcTemplate calls it for **every row**. **BeanPropertyRowMapper** is a ready-made **automatic** RowMapper that matches **column names to bean properties**, including **snake_case to camelCase** (full_name to fullName), so you can skip the manual mapper when the names line up.",
+  hi:"ResultSet ki ek row ko Student object banana RowMapper ka kaam hai. Naam match karte hon (jaise full_name aur fullName) to BeanPropertyRowMapper ye khud kar deta hai, warna apna RowMapper likho.",
+  code:`// Manual mapping: poora control
+public class StudentRowMapper implements RowMapper<Student> {
+    @Override
+    public Student mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Student s = new Student();
+        s.setId(rs.getLong("id"));
+        s.setName(rs.getString("name"));
+        s.setEmail(rs.getString("email"));
+        s.setAge(rs.getInt("age"));
+        return s;
+    }
+}
+
+// Automatic mapping: column naam aur field naam match hon
+RowMapper<Student> rowMapper = new BeanPropertyRowMapper<>(Student.class);`,
+  note:{t:"Extra (mera note)", x:"BeanPropertyRowMapper ko class mein default constructor aur setters chahiye hote hain, aur ye reflection se kaam karta hai."},
+  ln:["springJdbc"] },
+
+{ n:48, t:"role", q:"How does Spring JDBC handle SQLException? What is DataAccessException?",
+  en:"Raw JDBC throws a **checked, vendor-specific SQLException** that must be caught everywhere, and its error codes differ across MySQL, PostgreSQL and Oracle. Spring JDBC performs **exception translation**: it converts it into the **unchecked DataAccessException** hierarchy, whose subclasses are **meaningful and database-independent**, so you catch only the errors you care about.",
+  hi:"Raw JDBC mein SQLException har jagah try-catch maangti thi aur har database ka error code alag hota tha. Spring us error ko seedhe naam wali exception mein badal deta hai (jaise DuplicateKeyException), aur wo unchecked hai, to catch karna zaruri nahi.",
+  table:{ head:["Exception","Kab aata hai"], rows:[["DuplicateKeyException","UNIQUE ya PRIMARY KEY violation, jaise same email dobara insert"],["DataIntegrityViolationException","Foreign key ya NOT NULL constraint violation"],["BadSqlGrammarException","SQL syntax ya column naam galat"],["EmptyResultDataAccessException","queryForObject ko 0 rows mile"],["IncorrectResultSizeDataAccessException","queryForObject ko 1 se zyada rows mile"],["CannotGetJdbcConnectionException","Database down ya connection pool khatam"]] },
+  pts:["Parent: DataAccessException (unchecked). Isliye try-catch zaruri nahi.","Vendor ka alag error code ek hi exception type mein badal jaata hai."],
+  note:{t:"Extra (mera note)", x:"DuplicateKeyException asal mein DataIntegrityViolationException ki subclass hai, aur EmptyResultDataAccessException, IncorrectResultSizeDataAccessException ki. Catch karte waqt pehle specific wali rakho. Ye exceptions unchecked hain, isliye @Transactional par default rollback bhi hota hai (@Transactional wala chapter dekho)."},
+  ln:["springJdbc"] },
+
+{ n:49, t:"role", q:"When would you choose Spring JDBC over JPA/Hibernate?",
+  en:"Choose **Spring JDBC** when you need **100% control over the SQL**, **complex joins** and **tuned performance** in data-intensive code: Spring manages the connection, but you write the SQL yourself. Choose **JPA/Hibernate** for standard **CRUD** applications where **object-oriented mapping** matters, because the **ORM generates the SQL** for you.",
+  hi:"Simple rule: SQL par poora control aur heavy query chahiye to Spring JDBC. Normal CRUD aur object-style kaam chahiye to JPA/Hibernate, kyunki SQL bhi khud nahi likhni padti.",
+  table:{ head:["Metric","Spring JDBC","JPA / Hibernate"], rows:[["Control","SQL par 100% developer ka control","ORM SQL khud generate karta hai"],["Best for","Data-intensive kaam, complex joins, tuned performance","Standard CRUD apps, object-oriented mapping"],["SQL likhna","Khud likhni padti hai","Zyadatar nahi likhni padti"],["Connection management","Spring sambhalta hai","Hibernate aur Spring milke sambhalte hain"]] },
+  note:{t:"Extra (mera note)", x:"Dono ek hi project mein saath chal sakte hain: normal CRUD JPA se, aur bhaari reports ya complex queries JdbcTemplate se."},
+  ln:["springJdbc","hibDocs"] }
+);
+
+PRACTICE.push(
+["Raw JDBC aur JdbcTemplate mein kya farak hai? Template pattern kahan dikhta hai?",
+ "Raw JDBC mein connection, statement, parameters, close aur exception handling har baar khud likhna padta hai. JdbcTemplate mein ye fixed flow Spring ke paas hai, tum sirf SQL, parameters aur RowMapper dete ho. Fixed algorithm Spring ka aur badalne wale hisse developer ke: yahi Template pattern hai."],
+["Connection pool ka kya fayda hai? queryForObject par row na mile to kya hota hai?",
+ "Pool pehle se bane connections reuse karta hai, to har request par mehnga TCP handshake, authentication aur session setup nahi hota. close() connection ko pool mein wapas bhejta hai. queryForObject par 0 rows mile to EmptyResultDataAccessException aata hai, aur 1 se zyada mile to IncorrectResultSizeDataAccessException."]
+);
+
+CHECK.push("Spring JDBC: JdbcTemplate aur Template pattern", "Connection pooling aur HikariCP", "DataAccessException hierarchy");
+
+LINKROWS.push(["role","Spring JDBC, JdbcTemplate, HikariCP","42-49",["springJdbc","hikari","bootData"]]);
+
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function rich(text) {
+  var p = el("p");
+  text.split("**").forEach(function (part, i) { if (!part) return; if (i % 2) p.appendChild(el("strong", null, part)); else p.appendChild(document.createTextNode(part)); });
+  return p;
+}
+function pad(n) { return "Q" + n; }
+
+
+/* diagrams */
+function bx(x, y, w, h, cls, lines, tc) {
+  var cx = x + w / 2, lh = 15, y0 = y + h / 2 - (lines.length - 1) * lh / 2 + 4.5;
+  var o = '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="8"/>';
+  lines.forEach(function (t, i) { o += '<text x="' + cx + '" y="' + (y0 + i * lh) + '" text-anchor="middle"' + (tc ? ' class="' + tc + '"' : '') + '>' + t + '</text>'; });
+  return o;
+}
+function ar(x1, y1, x2, y2, k) {
+  var c = k === "r" ? "redln" : k === "g" ? "grnln" : "ln", m = k === "r" ? "ahr" : k === "g" ? "ahg" : "ah";
+  return '<line class="' + c + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" marker-end="url(#' + m + ')"/>';
+}
+function tx(x, y, t, anchor, cls) { return '<text x="' + x + '" y="' + y + '" text-anchor="' + anchor + '"' + (cls ? ' class="' + cls + '"' : '') + '>' + t + '</text>'; }
+function sv(w, h, cap, inner) { return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + cap + '">' + inner + '</svg>'; }
+function sw(x, y, cls) { return '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="14" height="14" rx="3"/>'; }
+
+var FIGS = {};
+(function () {
+  var c;
+
+  c = "Java code sirf java.sql interfaces par likha jaata hai. Driver unhe database ke apne protocol mein badal deta hai, isliye database badalna aasan hota hai.";
+  FIGS.jdbc = { cap: c, svg: sv(640, 190, c,
+    bx(8, 60, 110, 56, "plain", ["Your Java app", "(JVM, Server A)"]) + ar(118, 88, 160, 88) +
+    bx(160, 50, 190, 76, "box", ["java.sql interfaces", "Connection, Statement,", "PreparedStatement, ResultSet"]) + ar(350, 88, 392, 88) +
+    bx(392, 60, 132, 56, "k-auth", ["JDBC driver", "mysql-connector-j"]) + ar(524, 88, 546, 88) +
+    bx(546, 60, 86, 56, "plain", ["MySQL", "(Server B)"]) +
+    tx(320, 156, "Oracle ya PostgreSQL ka driver bhi isi jagah plug hota hai, Java code wahi rehta hai", "middle", "sm")) };
+
+  c = "Auto-commit band karke dono queries ek transaction mein chalti hain. Sab theek to commit(), koi bhi fail to rollback() aur sab kuch purani state par.";
+  FIGS.jdbctx = { cap: c, svg: sv(640, 190, c,
+    bx(8, 66, 150, 52, "plain", ["setAutoCommit(false)", "transaction shuru"]) + ar(158, 80, 196, 58) +
+    bx(196, 34, 150, 38, "box", ["Query 1: deduct A"]) + ar(271, 72, 271, 104) +
+    bx(196, 104, 150, 38, "box", ["Query 2: credit B"]) +
+    ar(346, 53, 420, 50, "g") + tx(383, 40, "all ok", "middle", "sm grn") +
+    ar(346, 123, 420, 130, "r") + tx(383, 150, "any error", "middle", "sm red") +
+    bx(420, 28, 212, 46, "grnbox", ["commit()", "dono changes save"], "grn") +
+    bx(420, 108, 212, 46, "redbox", ["rollback()", "sab kuch purani state par"], "red")) };
+
+  c = "Tumhara code Spring Data JPA se baat karta hai, wo JPA rules ke through Hibernate se, aur Hibernate andar JDBC use karke database tak pahunchta hai.";
+  FIGS.layers = { cap: c, svg: sv(640, 392, c,
+    bx(160, 8, 320, 44, "plain", ["Your code", "Service / Controller"]) + ar(320, 52, 320, 74) +
+    bx(160, 74, 320, 44, "k-prod", ["Spring Data JPA", "repository interfaces, generated"]) + ar(320, 118, 320, 140) + tx(490, 100, "boilerplate hatata hai", "start", "sm") +
+    bx(160, 140, 320, 44, "k-core", ["JPA (Jakarta Persistence)", "@Entity, EntityManager"]) + ar(320, 184, 320, 206) + tx(490, 166, "rulebook (specification)", "start", "sm") +
+    bx(160, 206, 320, 44, "k-jwt", ["Hibernate", "SQL generation, L1 cache, mapping"]) + ar(320, 250, 320, 272) + tx(490, 232, "asli kaam karta hai", "start", "sm") +
+    bx(160, 272, 320, 44, "k-auth", ["JDBC", "connections, PreparedStatement"]) + ar(320, 316, 320, 338) + tx(490, 298, "low-level plumbing", "start", "sm") +
+    bx(160, 338, 320, 44, "plain", ["Relational database", "MySQL / PostgreSQL / Oracle"])) };
+
+  c = "Factory poori app ke liye ek baar banti hai. Har transaction ke liye naya EntityManager milta hai, aur uske andar Persistence Context (L1 cache) entities ko track karta hai.";
+  FIGS.emstack = { cap: c, svg: sv(640, 220, c,
+    bx(8, 50, 156, 56, "k-core", ["EntityManagerFactory", "1 per app, long-lived"]) + ar(164, 78, 204, 78) + tx(184, 70, "creates", "middle", "sm") +
+    bx(204, 50, 130, 56, "k-jwt", ["EntityManager", "per transaction"]) + ar(334, 78, 374, 78) + tx(354, 70, "has", "middle", "sm") +
+    bx(374, 50, 140, 56, "k-auth", ["Persistence Context", "= L1 cache"]) + ar(514, 78, 548, 78) + tx(531, 70, "flush", "middle", "sm") +
+    bx(548, 50, 84, 56, "plain", ["Database"]) +
+    tx(86, 128, "Hibernate: SessionFactory", "middle", "sm") + tx(269, 128, "Hibernate: Session", "middle", "sm") + tx(444, 128, "tracks loaded entities", "middle", "sm") +
+    bx(8, 156, 624, 40, "box", ["EntityManager thread-safe nahi hota, isliye har transaction par naya banta aur destroy hota hai"])) };
+
+  c = "find() pehle L1 cache dekhta hai. Mil gaya to SQL nahi chalti. Nahi mila to SELECT chalta hai aur entity cache mein rakh di jaati hai.";
+  FIGS.l1 = { cap: c, svg: sv(640, 240, c,
+    bx(8, 94, 112, 52, "plain", ["em.find(", "Student, 1)"]) + ar(120, 120, 160, 120) +
+    bx(160, 94, 156, 52, "k-auth", ["Check L1 cache", "Persistence Context"]) +
+    ar(238, 94, 238, 46, "g") + tx(248, 74, "hit", "start", "sm grn") +
+    bx(160, 8, 156, 38, "grnbox", ["Found: no SQL fired"], "grn") +
+    ar(238, 146, 238, 184, "r") + tx(248, 168, "miss", "start", "sm red") +
+    bx(160, 184, 156, 50, "redbox", ["SELECT on DB", "store in L1 cache"], "red") +
+    ar(316, 27, 430, 94, "g") + ar(316, 209, 430, 146, "r") +
+    bx(400, 94, 232, 52, "plain", ["Return entity to app", "(same object every time)"])) };
+
+  c = "Entity managed hoti hai to Hibernate uska snapshot rakhta hai. Commit par snapshot se compare karta hai, aur badlav mila to UPDATE khud chalata hai.";
+  FIGS.dirty = { cap: c, svg: sv(640, 200, c,
+    bx(8, 24, 142, 70, "k-auth", ["1. find(id)", "becomes Managed", "snapshot taken"]) + ar(150, 59, 170, 59) +
+    bx(170, 24, 142, 70, "box", ["2. setters", "student.setName()", "only heap changes"]) + ar(312, 59, 332, 59) +
+    bx(332, 24, 142, 70, "k-jwt", ["3. commit / flush", "compare entity", "with snapshot"]) + ar(474, 59, 494, 59) +
+    bx(494, 24, 138, 70, "grnbox", ["4. UPDATE SQL", "only if changed", "(write-behind)"], "grn") +
+    bx(8, 124, 624, 44, "box", ["save() ya update() call nahi chahiye. Entity @Transactional ke andar Managed honi chahiye."])) };
+
+  c = "Entity new se Transient banti hai. persist() ya find() se Managed hoti hai. Context band hone par Detached ho jaati hai, aur remove() se Removed.";
+  FIGS.life = { cap: c, svg: sv(640, 296, c,
+    bx(8, 30, 132, 48, "plain", ["Transient", "new Student()"]) +
+    bx(254, 30, 132, 48, "k-auth", ["Managed", "tracked in L1 cache"]) +
+    bx(500, 30, 132, 48, "plain", ["Detached", "not tracked"]) +
+    bx(254, 200, 132, 48, "redbox", ["Removed", "DELETE at flush"], "red") +
+    bx(8, 200, 132, 48, "plain", ["Database row"]) +
+    ar(140, 54, 254, 54, "g") + tx(197, 46, "persist()", "middle", "sm") +
+    ar(386, 44, 500, 44) + tx(443, 36, "detach() / clear()", "middle", "sm") +
+    ar(500, 66, 386, 66) + tx(443, 86, "merge()", "middle", "sm") +
+    ar(320, 78, 320, 200, "r") + tx(330, 144, "remove()", "start", "sm red") +
+    ar(110, 200, 262, 78) + tx(112, 150, "find()", "start", "sm") +
+    tx(320, 276, "Transaction ya EntityManager band hone par saari Managed entities Detached ho jaati hain", "middle", "sm")) };
+
+  c = "Many side (students) ki table mein foreign key hoti hai. Student owning side hai, Department inverse side hai aur mappedBy lagata hai.";
+  FIGS.fk = { cap: c, svg: sv(640, 220, c,
+    bx(8, 30, 250, 112, "k-role", ["students", "id (PK)", "name", "department_id (FK)"]) +
+    ar(258, 118, 380, 86) + tx(319, 82, "many : one", "middle", "b") +
+    bx(380, 30, 252, 80, "plain", ["departments", "id (PK)", "name"]) +
+    tx(133, 164, "Owning side: @ManyToOne + @JoinColumn", "middle", "sm") +
+    tx(506, 164, "Inverse side: @OneToMany(mappedBy)", "middle", "sm") +
+    tx(320, 196, "FK hamesha 'many' side ki table mein hoti hai", "middle", "sm red")) };
+
+  c = "Many-to-many mein beech ki join table dono ki foreign keys rakhti hai, aur dono milkar composite primary key banti hain.";
+  FIGS.m2m = { cap: c, svg: sv(640, 184, c,
+    bx(8, 24, 160, 80, "plain", ["students", "id (PK)", "name"]) +
+    bx(240, 24, 160, 80, "k-prod", ["student_course", "student_id (FK1)", "course_id (FK2)"]) +
+    bx(472, 24, 160, 80, "plain", ["courses", "id (PK)", "name"]) +
+    ar(240, 64, 168, 64) + ar(400, 64, 472, 64) +
+    tx(320, 134, "Composite PK = (student_id, course_id)", "middle", "sm") +
+    tx(320, 156, "Owning side: @JoinTable, dusri side: mappedBy", "middle", "sm")) };
+
+  c = "N+1 mein 100 students ke liye 101 queries chalti hain. @EntityGraph ya JOIN FETCH se wahi data ek hi query mein aa jaata hai.";
+  FIGS.n1 = { cap: c, svg: sv(640, 260, c,
+    tx(148, 18, "N+1 problem (lazy in loop)", "middle", "b red") + tx(492, 18, "Fix: @EntityGraph / JOIN FETCH", "middle", "b grn") +
+    '<line class="life" x1="320" y1="6" x2="320" y2="250"/>' +
+    bx(8, 32, 280, 36, "plain", ["findAll(): 1 query for N students"]) + ar(148, 68, 148, 88, "r") +
+    bx(8, 88, 280, 30, "redbox", ["student 1: SELECT department"], "red") +
+    bx(8, 126, 280, 30, "redbox", ["student 2: SELECT department"], "red") +
+    tx(148, 176, "... N times ...", "middle", "sm red") +
+    bx(8, 192, 280, 44, "redbox", ["100 students = 101 queries"], "red") +
+    bx(352, 32, 280, 36, "plain", ["findAll() with @EntityGraph"]) + ar(492, 68, 492, 88, "g") +
+    bx(352, 88, 280, 68, "grnbox", ["1 query with JOIN", "students + department", "come together"], "grn") + ar(492, 156, 492, 192, "g") +
+    bx(352, 192, 280, 44, "grnbox", ["100 students = 1 query"], "grn")) };
+
+  c = "Arrow ka matlab extends hai (child se parent ki taraf). JpaRepository dono List wale interfaces ko extend karke sab features ek jagah deta hai.";
+  FIGS.repo = { cap: c, svg: sv(640, 346, c,
+    bx(230, 8, 180, 36, "plain", ["Repository<T, ID>"]) +
+    bx(30, 84, 250, 50, "box", ["CrudRepository", "save, findById, deleteById, count"]) +
+    bx(360, 84, 250, 50, "box", ["PagingAndSortingRepository", "findAll(Sort), findAll(Pageable)"]) +
+    ar(155, 84, 280, 44) + ar(485, 84, 360, 44) +
+    bx(30, 176, 250, 50, "plain", ["ListCrudRepository", "returns List, not Iterable"]) +
+    bx(360, 176, 250, 50, "plain", ["ListPagingAndSortingRepository", "sorted data as List"]) +
+    ar(155, 176, 155, 134) + ar(485, 176, 485, 134) +
+    bx(190, 266, 260, 52, "k-prod", ["JpaRepository<T, ID>", "flush, saveAndFlush, deleteAllInBatch"]) +
+    ar(250, 266, 155, 226) + ar(390, 266, 485, 226) +
+    tx(320, 338, "Arrow = extends (child se parent ki taraf)", "middle", "sm")) };
+
+  c = "Repository ke liye Spring runtime par proxy banata hai. Standard methods SimpleJpaRepository ko jaate hain, aur custom naam wale methods query parser ko.";
+  FIGS.proxy = { cap: c, svg: sv(640, 280, c,
+    bx(8, 98, 124, 56, "plain", ["Service layer", "calls repository"]) + ar(132, 126, 170, 126) +
+    bx(170, 98, 162, 56, "k-prod", ["Dynamic proxy", "generated at runtime"]) +
+    ar(332, 110, 384, 62) + ar(332, 142, 384, 192) +
+    bx(384, 30, 248, 62, "k-auth", ["SimpleJpaRepository", "standard: save, findById, delete", "calls EntityManager"]) +
+    bx(384, 162, 248, 62, "k-jwt", ["Query method parser", "custom name: findByEmail", "builds the query from the name"]) +
+    tx(320, 262, "Tum sirf interface likhte ho, implementation Spring banata hai", "middle", "sm")) };
+})();
+
+(function () {
+  var c;
+
+  c = "JdbcTemplate ka ek method call ye 6 fixed steps khud chalata hai. Tum sirf teen cheezein dete ho: SQL, parameters aur RowMapper.";
+  FIGS.tmpl = { cap: c, svg: sv(640, 280, c,
+    bx(8, 6, 330, 34, "k-role", ["1. Pool se connection lo"]) + ar(173, 40, 173, 50) +
+    bx(8, 50, 330, 34, "k-role", ["2. PreparedStatement banao, params lagao"]) + ar(173, 84, 173, 94) +
+    bx(8, 94, 330, 34, "k-role", ["3. SQL execute karo"]) + ar(173, 128, 173, 138) +
+    bx(8, 138, 330, 34, "k-role", ["4. ResultSet ko RowMapper se object banao"]) + ar(173, 172, 173, 182) +
+    bx(8, 182, 330, 34, "k-role", ["5. Statement band, connection pool ko wapas"]) + ar(173, 216, 173, 226) +
+    bx(8, 226, 330, 34, "k-role", ["6. SQLException ko DataAccessException banao"]) +
+    bx(410, 50, 222, 34, "k-prod", ["Tum dete ho: parameters"]) + ar(410, 67, 338, 67) +
+    bx(410, 94, 222, 34, "k-prod", ["Tum dete ho: SQL query"]) + ar(410, 111, 338, 111) +
+    bx(410, 138, 222, 34, "k-prod", ["Tum dete ho: RowMapper"]) + ar(410, 155, 338, 155) +
+    tx(521, 200, "Baaki sab Spring ka kaam", "middle", "sm")) };
+
+  c = "Pool pehle se bane connections rakhta hai. Thread connection udhaar leta hai, kaam karke close() karta hai, aur connection pool mein wapas chala jaata hai.";
+  FIGS.pool = { cap: c, svg: sv(640, 220, c,
+    bx(8, 22, 100, 40, "plain", ["Request 1"]) +
+    bx(8, 90, 100, 40, "plain", ["Request 2"]) +
+    bx(8, 158, 100, 40, "plain", ["Request 3"]) +
+    ar(108, 42, 232, 62) + tx(168, 38, "borrow", "middle", "sm") +
+    ar(232, 172, 108, 178, "g") + tx(170, 198, "close(): wapas", "middle", "sm grn") +
+    bx(232, 8, 196, 204, "box", []) +
+    tx(330, 28, "HikariCP pool", "middle", "sm") +
+    bx(250, 44, 160, 30, "k-role", ["Connection 1"]) +
+    bx(250, 82, 160, 30, "k-role", ["Connection 2"]) +
+    bx(250, 120, 160, 30, "k-role", ["Connection 3"]) +
+    bx(250, 158, 160, 30, "k-role", ["Connection 4"]) +
+    ar(428, 110, 500, 110) + tx(464, 100, "reuse", "middle", "sm") +
+    bx(500, 76, 132, 68, "plain", ["Database", "connections", "ki limit hoti hai"])) };
+})();
+
+function buildFig(F) {
+  var f = el("figure", "fig"), w = el("div", "figwrap"); w.innerHTML = F.svg;
+  f.appendChild(w); f.appendChild(el("figcaption", null, F.cap)); return f;
+}
+
+var byN = {}; Q.forEach(function (x) { byN[x.n] = x; });
+
+function buildConcept(x) {
+  var c = el("section", "concept"); c.id = "c" + x.n;
+  c.setAttribute("data-s", (TITLES[x.n] + " " + x.q + " " + x.en.replace(/\*\*/g, "") + " " + x.hi + " " + (x.pts || []).join(" ")).toLowerCase());
+  var h = el("h3", null, TITLES[x.n]);
+  if (PRIORITY.indexOf(x.n) > -1) h.appendChild(el("span", "star", "Interview favourite"));
+  c.appendChild(h);
+  c.appendChild(el("p", "lead", x.hi));
+  var iv = el("div", "say en"); iv.appendChild(el("h4", null, "Interview mein bolo")); iv.appendChild(rich(x.en)); c.appendChild(iv);
+
+  if (x.fig) x.fig.forEach(function (k) { c.appendChild(buildFig(FIGS[k])); });
+  if (x.table) {
+    var w = el("div", "tablewrap"), t = el("table"), th = el("thead"), tr = el("tr");
+    x.table.head.forEach(function (hd) { tr.appendChild(el("th", null, hd)); }); th.appendChild(tr); t.appendChild(th);
+    var tb = el("tbody");
+    x.table.rows.forEach(function (r) { var rr = el("tr"); r.forEach(function (cell) { rr.appendChild(el("td", null, cell)); }); tb.appendChild(rr); });
+    t.appendChild(tb); w.appendChild(t); c.appendChild(w);
+  }
+  if (x.pts) { var ul = el("ul", "pts"); x.pts.forEach(function (p) { ul.appendChild(el("li", null, p)); }); c.appendChild(ul); }
+  if (x.steps) { var ol = el("ol", "steps"); x.steps.forEach(function (s) { ol.appendChild(el("li", null, s)); }); c.appendChild(ol); }
+  if (x.code) { var pre = el("pre"); pre.appendChild(el("code", null, x.code)); c.appendChild(pre); }
+  if (x.note) {
+    var n = el("div", "note " + (x.note.w ? "warn" : "tip")); n.appendChild(el("b", null, x.note.t)); n.appendChild(el("span", null, x.note.x)); c.appendChild(n);
+  }
+  if (x.ln && x.ln.length) {
+    var r = el("div", "refs"); r.appendChild(el("small", null, "Reference"));
+    x.ln.forEach(function (k) { var a = el("a", null, L[k][0]); a.href = L[k][1]; a.target = "_blank"; a.rel = "noopener"; r.appendChild(a); });
+    c.appendChild(r);
+  }
+  return c;
+}
+
+/* read-state, remembered per browser */
+var read = []; try { read = JSON.parse(localStorage.getItem("jpa-topic-read") || "[]"); } catch (e) { read = []; }
+if (!Array.isArray(read)) read = [];
+function saveRead() { try { localStorage.setItem("jpa-topic-read", JSON.stringify(read)); } catch (e) {} }
+function updateReadCount() { var el2 = document.getElementById("readcnt"); if (el2) el2.textContent = read.length + " / " + CH.length + " chapters padhe"; }
+
+var chapters = document.getElementById("chapters"), chips = document.getElementById("chips"), side = document.getElementById("side");
+side.appendChild(el("h4", null, "Topic map"));
+
+CH.forEach(function (ch, i) {
+  var id = "ch" + (i + 1);
+  var sec = el("section", "chapter"); sec.id = id; sec.setAttribute("data-t", ch.t);
+
+  var head = el("div", "chap-head");
+  head.appendChild(el("div", "chap-no", "Chapter " + (i + 1) + " of " + CH.length));
+  head.appendChild(el("h2", null, ch.title));
+  head.appendChild(el("p", "big", ch.big));
+  var lw = el("div", "learn");
+  ch.learn.forEach(function (l) { lw.appendChild(el("div", null, l)); });
+  head.appendChild(el("div", "learn-h", "Is chapter ke baad tum bata paoge"));
+  head.appendChild(lw);
+  var cn = el("div", "cnav");
+  ch.qs.forEach(function (n) { var a = el("a", null, TITLES[n]); a.href = "#c" + n; cn.appendChild(a); });
+  head.appendChild(cn);
+  sec.appendChild(head);
+
+  ch.qs.forEach(function (n) { sec.appendChild(buildConcept(byN[n])); });
+
+  var foot = el("div", "chap-foot");
+  foot.appendChild(el("div", "remember", "Ek line mein yaad rakho: " + ch.remember));
+  var lab = el("label", "done"); var cb = el("input"); cb.type = "checkbox"; cb.id = "read" + i; cb.checked = read.indexOf(i) > -1;
+  cb.addEventListener("change", function () {
+    var k = read.indexOf(i);
+    if (cb.checked && k < 0) read.push(i); if (!cb.checked && k > -1) read.splice(k, 1);
+    saveRead(); updateReadCount();
+  });
+  lab.appendChild(cb); lab.appendChild(el("span", null, "Ye chapter padh liya"));
+  foot.appendChild(lab);
+  sec.appendChild(foot);
+  chapters.appendChild(sec);
+
+  /* top chips */
+  var chip = el("a", "chip", (i + 1) + ". " + ch.title); chip.href = "#" + id; chip.setAttribute("data-t", ch.t); chips.appendChild(chip);
+
+  /* sidebar */
+  var grp = el("div", "sgrp"); grp.setAttribute("data-t", ch.t);
+  var ca = el("a", "sch", (i + 1) + ". " + ch.title); ca.href = "#" + id; grp.appendChild(ca);
+  ch.qs.forEach(function (n) { var a = el("a", "ssub", TITLES[n]); a.href = "#c" + n; grp.appendChild(a); });
+  side.appendChild(grp);
+});
+[["Practice", "#practice"], ["Checklist", "#checklist"], ["Links", "#links"]].forEach(function (x) {
+  var a = el("a", "chip plain", x[0]); a.href = x[1]; chips.appendChild(a);
+});
+updateReadCount();
+
+/* practice */
+var pq = document.getElementById("pq");
+PRACTICE.forEach(function (p, i) {
+  var d = el("details", "pq"); d.setAttribute("data-t", i % 2 ? "web" : "prod");
+  var s = el("summary"); s.appendChild(el("span", "qbadge", String(i + 1))); s.appendChild(el("span", null, p[0])); d.appendChild(s);
+  d.appendChild(el("p", "ans", p[1])); pq.appendChild(d);
+});
+
+/* checklist with remembered ticks */
+var store = null; try { store = JSON.parse(localStorage.getItem("jpa-topic-check") || "[]"); } catch (e) { store = []; }
+if (!Array.isArray(store)) store = [];
+var chk = document.getElementById("check");
+function refresh() {
+  var done = chk.querySelectorAll("input:checked").length;
+  document.getElementById("cnt").textContent = done + " / " + CHECK.length + " done";
+  document.getElementById("bar").style.width = (done / CHECK.length * 100) + "%";
+}
+CHECK.forEach(function (t, i) {
+  var l = el("label"); var inp = el("input"); inp.type = "checkbox"; inp.id = "ck" + i; inp.checked = store.indexOf(i) > -1;
+  inp.addEventListener("change", function () {
+    var all = []; chk.querySelectorAll("input").forEach(function (b, j) { if (b.checked) all.push(j); });
+    try { localStorage.setItem("jpa-topic-check", JSON.stringify(all)); } catch (e) {}
+    refresh();
+  });
+  l.appendChild(inp); l.appendChild(el("span", null, t)); chk.appendChild(l);
+});
+refresh();
+
+/* links table */
+var lr = document.getElementById("linkrows");
+LINKROWS.forEach(function (r) {
+  var row = el("div", "lrow"); row.setAttribute("data-t", r[0]);
+  row.appendChild(el("div", "lt", r[1]));
+  var ll = el("div", "ll");
+  r[3].forEach(function (k) { var a = el("a", null, L[k][0]); a.href = L[k][1]; a.target = "_blank"; a.rel = "noopener"; ll.appendChild(a); });
+  row.appendChild(ll); lr.appendChild(row);
+});
+
+/* search */
+document.getElementById("search").addEventListener("input", function (e) {
+  var v = e.target.value.trim().toLowerCase();
+  document.querySelectorAll(".concept").forEach(function (c) { c.hidden = !!v && c.getAttribute("data-s").indexOf(v) === -1; });
+  document.querySelectorAll("section.chapter").forEach(function (s) {
+    var any = s.querySelector(".concept:not([hidden])");
+    s.hidden = !!v && !any;
+  });
+});
+</script>
+
+</body></html>
