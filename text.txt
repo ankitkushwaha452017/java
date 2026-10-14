@@ -1,0 +1,2723 @@
+ वीडियो **"How Java Web Apps Actually Work | Servlets, Tomcat & WAR Files | Spring Boot Full Course #14"** का ऑडियो में समझाए गए हर एक टॉपिक, लॉजिक, और इंटरनल वर्किंग का **100% कम्प्लीट और पॉइंट-टू-पॉइंट नोट्स** नीचे दिया गया है:
+
+---
+
+# 📚 Complete Video Notes: How Java Web Apps Actually Work (Servlets, Tomcat & WAR Files)
+
+---
+
+## 1. Spring Boot के ज़माने में Servlets सीखना क्यों जरूरी है?
+* **Spring Framework की नींव**: स्प्रिंग बूट या स्प्रिंग एमवीसी (Spring MVC) आंतरिक रूप से कैसे काम करते हैं, यह समझने के लिए **Servlet Technology** को समझना अनिवार्य है क्योंकि पूरा स्प्रिंग वेब आर्किटेक्चर सर्वलेट्स पर ही बना हुआ है।
+* **वेब डेवलपमेंट की शुरुआत**: जावा में वेब एप्लिकेशन्स बनाने की सबसे पहली टेक्नोलॉजी सर्वलेट ही थी, जो पूरे स्प्रिंग फ्रेमवर्क का आधार बनती है।
+
+---
+
+## 2. Client-Server Architecture Fundamentals
+* **Client**: ऐसा कोई भी एंटिटी या सॉफ्टवेयर जो सर्वर को रिक्वेस्ट भेजता है (जैसे Web Browser, Mobile App, Postman, या कोई अन्य माइक्रोसर्विस/सर्वर)।
+* **Server**: जहाँ बैकएंड कोड डिप्लॉय होता है (जैसे Tomcat Server), जो रिक्वेस्ट रिसीव करके बिज़नेस लॉजिक चलाता है और रिस्पॉन्स भेजता है।
+* **HTTP Protocol**: क्लाइंट द्वारा भेजी जाने वाली रिक्वेस्ट को **HTTP Request** और सर्वर द्वारा भेजे जाने वाले रिस्पॉन्स को **HTTP Response** कहते हैं।
+
+---
+
+## 3. Core Java (`java.net`) से Web Application बनाने की समस्याएँ
+
+जावा में `java.net` पैकेज में `ServerSocket` और `Socket` क्लासेस होती हैं जो किसी पोर्ट (जैसे `localhost:8080`) को लिसन (listen) कर सकती हैं। फिर भी बिना सर्वलेट के केवल कोर जावा से एंटरप्राइज वेब एप्लीकेशन बनाना बेहद कठिन है:
+
+1. **Raw Stream of Bytes**: `java.net` के लिए आती हुई रिक्वेस्ट केवल बाइट्स या टेक्स्ट की एक स्ट्रिंग (Stream of Bytes) होती है; वह HTTP प्रोटोकॉल, एंडपॉइंट्स या वर्ब्स (`GET`, `POST`) को नहीं समझता।
+2. **Manual Request Parsing**: डेवलपर को खुद स्ट्रिंग पार्सिंग का कोड लिखकर मेथड का नाम (`GET`, `POST`), यूआरएल एंडपॉइंट (`/hello`), हेडर्स, और रिक्वेस्ट बॉडी निकालनी पड़ती है।
+3. **Manual Endpoint Routing**: किस एंडपॉइंट पर कौन सा जावा मेथड कॉल होगा, इसके लिए गंदे `if-else` कंडीशन्स लिखने पड़ते हैं।
+4. **Manual HTTP Response Formatting**: रिस्पॉन्स भेजने के लिए HTTP हेडर्स, स्टेटस कोड (जैसे `200`, `404`), और बॉडी टेक्स्ट खुद स्ट्रिंग फॉर्मेट में बिल्ड करना पड़ता है।
+5. **Manual Multithreading**: एक से अधिक यूज़र्स की कॉनकरेंट रिक्वेस्ट्स संभालने के लिए डेवलपर को खुद मल्टी-थ्रेडिंग और थ्रेड पूलिंग का कोड लिखना पड़ता है, वरना एक समय पर केवल एक ही यूज़र काम कर पाएगा।
+6. **13+ Manual Steps**: बिज़नेस लॉजिक लिखने से पहले ही सर्वर-ओरिएंटेड काम के लिए 13 से ज़्यादा स्टेप्स मैन्युअली करने पड़ते हैं।
+
+---
+
+## 4. Servlets और Servlet Container (Apache Tomcat) का आगमन
+
+इस समस्या को हल करने के लिए सर्वर को दो भागों में विभाजित किया गया: **Servlet Container (Tomcat)** और **Servlets**।
+
+```
+Client (Postman/Browser) ---> Tomcat Container (Port 8080) ---> HttpServletRequest / Response
+                                                                          |
+                                                                          v
+                                                             UserServlet (doGet / doPost)
+```
+
+### 4.1 Apache Tomcat (Servlet Container) का रोल
+* **Long Running Process**: यह ऑपरेटिंग सिस्टम पर पोर्ट `8080` को लगातार लिसन करने वाला एक जावा सर्वर/प्रोसेस है।
+* **Low-Level Tasks Automation**: पोर्ट से रिक्वेस्ट सुनना, HTTP पार्सिंग करना, थ्रेड्स मैनेज करना, और `HttpServletRequest` व `HttpServletResponse` ऑब्जेक्ट्स बनाना यह खुद संभालता है।
+
+### 4.2 Servlet की परिभाषा
+* **Special Java Class**: सर्वलेट जावा की एक विशेष क्लास है जो बिज़नेस लॉजिक संभालती है।
+* **Managed by Tomcat**: सर्वलेट्स के ऑब्जेक्ट्स को डेवलपर `new` कीवर्ड से मैनेज नहीं करता, बल्कि **Tomcat Container** उनके लाइफसाइकिल और इंस्टेंसेस को मैनेज करता है।
+* *Analogy*: जैसे स्प्रिंग में **IoC Container** बीन्स (Beans) को मैनेज करता है, वैसे ही टॉमकैट सर्वलेट कंटेनर सर्वलेट्स (Servlets) को मैनेज करता है।
+
+---
+
+## 5. Tomcat की आंतरिक कार्यप्रणाली: `HttpServletRequest` व `HttpServletResponse`
+
+1. **Request Parsing**: जब रिक्वेस्ट (जैसे `GET http://localhost:8080/hello`) आती है, तो Tomcat उसे पार्स करके जावा की `HttpServletRequest` क्लास का ऑब्जेक्ट बनाता है और उसमें हेडर, मेथड, यूआरएल आदि भर देता है।
+2. **Empty Response Creation**: Tomcat `HttpServletResponse` क्लास का एक खाली ऑब्जेक्ट भी बनाता है।
+3. **Servlet Dispatch**: मैपिंग के आधार पर टॉमकैट सही सर्वलेट (जैसे `HelloServlet`) को चुनता है और यह दोनों ऑब्जेक्ट्स पैरामीटर के रूप में उस सर्वलेट को पास कर देता है।
+4. **Data Extraction & Response Population**: सर्वलेट `HttpServletRequest` के गेटर मेथड्स से डेटा निकालता है, बिज़नेस लॉजिक चलाता है, और `HttpServletResponse` के सेटर मेथड्स (जैसे `setStatus()`, `getWriter().write()`) से रिस्पॉन्स भर देता है।
+
+---
+
+## 6. External Tomcat, Embedded Tomcat और WAR Files
+
+* **Embedded Tomcat**: आधुनिक स्प्रिंग बूट एप्लिकेशन्स में `spring-boot-starter-web` डिपेंडेंसी के साथ Tomcat एप्लीकेशन JAR के अंदर ही एंबेडेड आता है।
+* **External Tomcat**: पहले के समय में टॉमकैट सर्वर अलग से डाउनलोड करना पड़ता था।
+* **WAR File (Web Application Archive)**: कम्पाउल्ड `.class` फाइल्स, सर्वलेट क्लासेस, `web.xml` या एनोटेशन कॉन्फ़िगरेशन्स, और स्टैटिक एसेट्स (HTML, CSS) का बंडल पैकेज होता है।
+* **Deployment**: WAR फाइल को External Tomcat के **`webapps/`** फोल्डर में डिप्लॉय किया जाता है, जहाँ टॉमकैट उसे अपने आप अनज़िप करके चला देता है।
+
+---
+
+## 7. Maven Configuration (`pom.xml`)
+
+```xml
+<!-- 1. Packaging Set to WAR -->
+<packaging>war</packaging>
+
+<dependencies>
+    <!-- 2. Jakarta Servlet API -->
+    <dependency>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>6.1.0</version>
+        <scope>provided</scope> <!-- Extremely Important! -->
+    </dependency>
+</dependencies>
+```
+
+### `<scope>provided</scope>` का क्या अर्थ है?
+* इसका अर्थ है कि यह लाइब्रेरी केवल कोड कंपाइल करने के लिए Maven को चाहिए।
+* जब अंतिम `.war` पैकेज बनेगा, तो यह JAR फाइल उसमें बंडल **नहीं** की जाएगी, क्योंकि Tomcat सर्वर रनटाइम पर अपनी सर्वलेट लाइब्रेरी खुद प्रदान करता है।
+* यदि इसे WAR में बंडल कर दिया जाए, तो टॉमकैट की अपनी लाइब्रेरी और WAR की लाइब्रेरी में डिपेंडेंसी कॉन्फ्लिक्ट (Resolution error) हो जाएगा।
+
+---
+
+## 8. Servlet Implementation Breakdown
+
+### 8.1 Class Structure & Endpoints
+* सर्वलेट क्लास को `@WebServlet("/users")` से एनोटेट किया जाता है।
+* सर्वलेट `HttpServlet` एब्सट्रैक्ट क्लास को एक्सटेंड करता है।
+* **Class-Level Endpoints**: सर्वलेट्स में एंडपॉइंट्स क्लास-लेवल होते हैं (जैसे `/users`), स्प्रिंग बूट की तरह मेथड-लेवल एंडपॉइंट्स नहीं होते। एक ही सर्वलेट उस पाथ की `GET`, `POST`, `PUT`, `DELETE` सभी कॉल्स संभालता है।
+
+```java
+@WebServlet("/users")
+public class UserServlet extends HttpServlet {
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        // Read Parameters
+        String id = request.getParameter("id");
+        String name = request.getParameter("name");
+
+        // Write Response
+        response.setStatus(201);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"message\": \"User Added Successfully\"}");
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        // Handle GET Request
+    }
+}
+```
+
+---
+
+## 9. Servlet Lifecycle Callbacks (3 Key Methods)
+
+Tomcat कंटेनर सर्वलेट के जीवनचक्र में निम्नलिखित 3 मुख्य कॉलबैक मेथड्स चलाता है:
+
+```
+      Client Request (e.g. GET /hello)
+                     |
+                     v
+   1. Constructor Call (HelloServlet hs = new HelloServlet()) [Lazy Initialization]
+                     |
+                     v
+   2. init(ServletConfig config) [Called ONCE during initialization]
+                     |
+                     v
+   3. service(ServletRequest req, ServletResponse res) [Called on EVERY Request]
+            |---> Checks HTTP Verb (GET, POST, etc.)
+            |---> Dispatches to doGet(), doPost(), doPut(), doDelete()
+                     |
+                     v (Tomcat Shutdown / Redeploy)
+   4. destroy() [Called ONCE for cleanup]
+```
+
+1. **`init(ServletConfig config)`**: सर्वलेट ऑब्जेक्ट पहली बार बनने पर केवल **एक बार** कॉल होता है। यह स्प्रिंग के `@PostConstruct` की तरह भारी रिसोर्स लोडिंग के लिए इस्तेमाल होता है।
+   * *Lazy Initialization*: Tomcat बाय डिफ़ॉल्ट सर्वलेट का ऑब्जेक्ट पहली रिक्वेस्ट आने पर ही बनाता है।
+2. **`service(ServletRequest req, ServletResponse res)`**: **हर एक इनकमिंग रिक्वेस्ट पर कॉल होता है**। यह `HttpServlet` के अंदर लिखा होता है जो चेक करता है कि रिक्वेस्ट किस टाइप की है और फिर `doGet()`, `doPost()`, `doPut()`, या `doDelete()` को कॉल डिस्पैच करता है।
+3. **`destroy()`**: टॉमकैट सर्वर बंद होने या एप्लीकेशन अन-डिप्लॉय होने पर केवल **एक बार** कॉल होता है। यह स्प्रिंग के `@PreDestroy` की तरह रिसोर्स क्लोजिंग के लिए इस्तेमाल होता है।
+
+---
+
+## 10. Raw Servlets की कमियाँ (Limitations)
+
+1. **Tight Coupling**: सर्वलेट के अंदर ही सर्विस लेयर का ऑब्जेक्ट `new UserService()` करके बनाना पड़ता है, जिससे कोड टाइटली कपल हो जाता है।
+2. **Manual JSON Handling**: JSON डेटा को रीड करने या ऑब्जेक्ट्स को JSON स्ट्रिंग बनाकर भेजने के लिए खुद का गंदा कोड या स्ट्रिंग कॉनकैटिनेशन लिखना पड़ता है।
+3. **Manual Response Building**: हर मेथड में `setStatus()`, `setContentType()`, और `getWriter().write()` मैन्युअली सेट करना पड़ता है।
+4. **Manual WAR Deployment**: हर बार बदलाव के बाद Maven पैकेज बनाकर `.war` फ़ाइल को Tomcat के `webapps/` में कॉपी करके सर्वर रीस्टार्ट करना पड़ता है।
+
+---
+
+## 11. Spring MVC और `DispatcherServlet` की ओर कदम
+
+सर्वर में कई अलग-अलग सर्वलेट्स होने पर लॉगिंग, वैलिडेशन, रिस्पॉन्स राइटिंग, और राउटिंग का कोड हर सर्वलेट में रिपीट होता है।
+
+* **Spring MVC Solution**: स्प्रिंग ने एक **Central Servlet** पेश किया जिसे **`DispatcherServlet`** (Front Controller Pattern) कहते हैं।
+* **Flow**: टॉमकैट की सभी रिक्वेस्ट्स पहले `DispatcherServlet` के पास जाती हैं। वह लॉगिंग, वैलिडेशन, और JSON मैपिंग खुद संभालता है और रिक्वेस्ट को हलके **Controllers / Beans** को भेज देता है।
+
+---
+
+💡 **क्या आप Servlets और Tomcat के इन कांसेप्ट्स पर आधारित कोई प्रैक्टिस Quiz या Flashcards बनाना चाहेंगे?**
+
+
+# 📚 Complete Video Notes: Spring MVC Architecture | DispatcherServlet, HandlerMapping & JSP Flow (Video #15)
+
+---
+
+## 1. Overview: Spring MVC क्या है और Spring Boot से कैसे अलग है?
+
+* **Actual Web Framework**: स्प्रिंग इकोसिस्टम का वास्तविक वेब फ्रेमवर्क **`Spring Web MVC`** (`spring-webmvc`) है। REST APIs और वेब एप्लिकेशन्स (HTML/JSP पेज रेंडर करने वाली) बनाने के लिए आवश्यक सभी मुख्य एनोटेशन्स (जैसे `@Controller`, `@RestController`, `@GetMapping`, `@PostMapping`, `@RequestBody`) स्प्रिंग एमवीसी मॉड्यूल द्वारा ही प्रदान की जाती हैं।
+* **Spring Boot's Role**: स्प्रिंग बूट कोई अलग वेब फ्रेमवर्क नहीं है; यह स्प्रिंग एमवीसी के ऊपर बनाई गई एक **Auto-Configuration Layer** है। 
+  * **Spring MVC (Manual Setup)**: डेवलपर्स को टॉमकैट सर्वर मैनुअली स्टार्ट करना पड़ता है, `DispatcherServlet` डिक्लेयर करना पड़ता है, और बहुत सारा बॉयलरप्लेट कोड लिखना पड़ता है।
+  * **Spring Boot**: `spring-boot-starter-web` के ज़रिए इन सभी कॉन्फ़िगरेशन्स को स्वचालित (Auto-configure) कर देता है ताकि डेवलपर सीधे बिज़नेस लॉजिक पर ध्यान दे सके।
+
+---
+
+## 2. Plain Servlets की समस्या और `DispatcherServlet` (Front Controller)
+
+### 2.1 Plain Servlets की समस्या
+पारंपरिक वेब एप्लिकेशन्स में हर एंडपॉइंट या मॉड्यूल के लिए अलग-अलग सर्वलेट क्लास (जैसे `UserServlet`, `OrderServlet`, `PaymentServlet`) बनानी पड़ती थी।
+* **Repetitive Boilerplate**: हर सर्वलेट को डेटा पार्सिंग, JSON से Java Object कन्वर्जन, HTTP स्टेटस कोड सेट करना, और एक्सेप्शन हैंडलिंग का काम बार-बार लिखना पड़ता था।
+
+```
+Traditional Servlets:
+Client ---> Tomcat Container ---> UserServlet / OrderServlet / PaymentServlet (Duplicated Boilerplate)
+```
+
+### 2.2 Spring MVC Solution: `DispatcherServlet`
+Spring MVC **Front Controller Pattern** का पालन करता है। इसमें अलग-अलग सर्वलेट्स की जगह पूरे एप्लीकेशन के लिए **केवल एक ही सेंट्रल सर्वलेट** होता है—**`DispatcherServlet`**।
+
+```
+Spring MVC Flow:
+Client ---> Tomcat Container ---> DispatcherServlet (Front Controller)
+                                       |
+                   +-------------------+-------------------+
+                   |                                       |
+            HandlerMapping                          HandlerAdapter
+         (Finds Controller)                      (Executes Method)
+                   |                                       |
+                   +-------------------> Controller <------+
+                                            |
+                                            v
+                                 Returns JSON / ModelAndView
+```
+
+---
+
+## 3. Spring MVC Internal Architecture & Request Flow
+
+जब कोई क्लाइंट (जैसे ब्राउज़र या पोस्टमैन) किसी एंडपॉइंट (जैसे `GET /hello`) पर रिक्वेस्ट भेजता है, तो बिहाइंड-द-सीन निष्पादन चरण:
+
+1. **Tomcat Parsing**: टॉमकैट सर्वर (पोर्ट `8080` पर) रॉ HTTP रिक्वेस्ट प्राप्त करता है और उसे पार्स करके **`HttpServletRequest`** और **`HttpServletResponse`** ऑब्जेक्ट्स बनाता है।
+2. **Handover to DispatcherServlet**: टॉमकैट यह दोनों ऑब्जेक्ट्स सीधे `DispatcherServlet` को सौंप देता है।
+3. **`HandlerMapping` Lookup**: `DispatcherServlet` स्वयं सीधे कंट्रोलर कॉल नहीं करता। यह **`HandlerMapping`** (इन-मेमोरी मैपिंग टेबल) से पूछता है कि दिए गए URL पाथ और HTTP मेथड के लिए कौन सी कंट्रोलर क्लास और मेथड मैप किया गया है।
+4. **Mapping Table Generation**: एप्लिकेशन स्टार्टअप के समय Spring IoC कंटेनर में बने सभी `@Controller` / `@RestController` बीन्स को स्कैन करके `@GetMapping`, `@PostMapping` एनोटेशन्स के आधार पर `HandlerMapping` यह मैपिंग टेबल तैयार करता है।
+5. **Execution via `HandlerAdapter`**: `DispatcherServlet` **`HandlerAdapter`** का उपयोग करके कंट्रोलर मेथड इनवोक करता है। इस दौरान `HandlerMethodArgumentResolver` पाथ वेरिएबल्स, क्वेरी पैरामीटर्स, और `@RequestBody` को रीसॉल्व करता है।
+6. **Data Conversion (Jackson Library)**: यदि क्लाइंट JSON डेटा भेजता है, तो `DispatcherServlet` आंतरिक रूप से **Jackson Library** का उपयोग करके JSON को Java POJO ऑब्जेक्ट में बदल देता है।
+7. **Response Serialization**: 
+   * **REST APIs (`@RestController`)**: मेथड का रिटर्न ऑब्जेक्ट Jackson द्वारा JSON में बदल दिया जाता है और सीधे `HttpServletResponse` की बॉडी में लिख दिया जाता है।
+   * **Web Applications (`@Controller`)**: रिटर्न किया गया व्यू नेम (जैसे `"home"`) **`ViewResolver`** के पास जाता है जो प्रीफ़िक्स (e.g., `/WEB-INF/views/`) और सफ़िक्स (e.g., `.jsp`) जोड़कर HTML/JSP पेज रेंडर करता है।
+
+---
+
+## 4. Data Transfer & Argument Resolvers Summary
+
+| Data Format | Transfer Mode | Resolved / Mapped By |
+| :--- | :--- | :--- |
+| **Request Body (JSON)** | `POST` / `PUT` Payloads | **Jackson Library** (via `DispatcherServlet`) |
+| **Path Variables** | `/users/{id}` | **`HandlerMethodArgumentResolver`** (inside `HandlerMapping`) |
+| **Query Parameters** | `/users?id=1` | **Tomcat Container** (`HttpServletRequest` parameters) |
+
+---
+
+## 5. Pure Spring MVC vs. Spring Boot: Code Comparison
+
+बिना स्प्रिंग बूट के केवल **Spring MVC** में एप्लिकेशन सेटअप करने के लिए डेवलपर को बहुत सारा बॉयलरप्लेट कोड मैन्युअली लिखना पड़ता है:
+
+### 5.1 Manual Dependencies required in `pom.xml`
+1. `spring-webmvc`
+2. `tomcat-embed-core` (Embedded Tomcat)
+3. `jackson-databind` (JSON-Java binding)
+
+### 5.2 Manual Web Configuration Class (`WebConfig.java`)
+```java
+@Configuration
+@ComponentScan(basePackages = "in.codearmy")
+@EnableWebMvc // Enables @RequestBody, @GetMapping, @PostMapping etc.
+public class WebConfig {
+    // Manual ViewResolver beans or Interceptors setup
+}
+```
+
+### 5.3 Manual Server Bootstrapping (`Main.java`)
+```java
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // 1. Instantiate Embedded Tomcat
+        Tomcat tomcat = new Tomcat();
+        tomcat.setPort(8080);
+        tomcat.getConnector();
+
+        // 2. Define Context and Base Document Path
+        Context context = tomcat.addContext("", new File("src/main/webapp").getAbsolutePath());
+
+        // 3. Initialize Spring Web Application Context (IoC Container)
+        AnnotationConfigWebApplicationContext springContext = new AnnotationConfigWebApplicationContext();
+        springContext.register(WebConfig.class);
+
+        // 4. Instantiate & Register DispatcherServlet with Tomcat
+        DispatcherServlet dispatcherServlet = new DispatcherServlet(springContext);
+        tomcat.addServlet("", "dispatcherServlet", dispatcherServlet);
+        context.addServletMappingDecoded("/", "dispatcherServlet");
+
+        // 5. Start Tomcat Server
+        tomcat.start();
+        tomcat.getServer().await(); // Keep server running
+    }
+}
+```
+> **स्प्रिंग बूट का फ़ायदा**: स्प्रिंग बूट में यह पूरा 25+ लाइनों का टॉमकैट और `DispatcherServlet` सेटअप कोड केवल एक एनोटेशन **`@SpringBootApplication`** और `spring-boot-starter-web` से अपने आप हो जाता है!
+
+---
+
+## 6. Traditional MVC Architecture (Model, View, Controller) & JSP
+
+स्प्रिंग एमवीसी का मूल उपयोग केवल REST APIs के लिए ही नहीं, बल्कि **Traditional Web Applications** (HTML/JSP) बनाने के लिए भी किया जाता था:
+
+```
+               +----------------------+
+               |    CLIENT BROWSER    |
+               +----------------------+
+                 ^                  |
+  HTML/JSP Response |                | HTTP Request
+                 |                  v
+               +----------------------+
+               |      CONTROLLER      |  (@Controller)
+               +----------------------+
+                 |                  ^
+   Sets Attribute|                  | Returns View Name ("home")
+                 v                  |
+               +----------------------+
+               |    MODEL OBJECT      |  (Transfers Data to View)
+               +----------------------+
+                 |
+                 v
+               +----------------------+
+               |     VIEW ENGINE      |  (JSP / ViewResolver)
+               +----------------------+
+```
+
+* **Model**: एक कंटेनर/ऑब्जेक्ट जो कंट्रोलर से डायनेमिक डेटा ले जाकर व्यू रेंडरिंग के लिए प्रदान करता है (`model.addAttribute("message", "Enter Name")`)।
+* **View**: HTML या **JSP (JavaServer Pages)** फ़ाइल जो उपयोगकर्ता को फ्रंटएंड ब्राउज़र पर दिखती है।
+* **Controller**: `@Controller` एनोटेशन वाली क्लास जो व्यू नेम स्ट्रिंग रिटर्न करती है।
+* **Relationship**:
+  \\[\text{@RestController} = \text{@Controller} + \text{@ResponseBody (on every method)}\\]
+
+---
+
+💡 **क्या आप Spring MVC Architecture पर आधारित अभ्यास के लिए कोई Interactive Quiz या Flashcard deck बनाना चाहेंगे?**
+
+
+# 📚 Complete Video Notes: Spring Boot Exception Handling (Make Your APIs Professional)
+
+---
+
+## 1. Introduction: Beginner vs. Professional APIs
+
+जब भी कोई सर्वर किसी क्लाइंट (जैसे Postman, Web Browser, या Frontend Frameworks) को **HTTP API Response** भेजता है, तो उसमें 3 मुख्य घटक शामिल होते हैं:
+1. **Status Code**: रिस्पॉन्स का वास्तविक अर्थ बताता है कि रिक्वेस्ट सफल रही या असफल (e.g., `200 OK`, `404 Not Found`, `500 Internal Server Error`).
+2. **Headers**: क्लाइंट को एक्स्ट्रा मेटा-डेटा/इन्फॉर्मेशन प्रदान करने वाले Key-Value पेयर्स (e.g., `Content-Type: application/json`).
+3. **Body (Payload)**: JSON या XML फॉर्मेट में वह वास्तविक डेटा जो क्लाइंट को डिलीवर किया जाता है.
+
+### फ्रेशर/बिगिनर बनाम प्रोफेशनल एपीआई का अंतर
+* **Beginner Approach**: हर परिस्थिति में `200 OK` रिस्पॉन्स भेज देना और बॉडी में `{"message": "No data found"}` लिख देना। यह गलत प्रैक्टिस है क्योंकि HTTP स्टेटस कोड `200` का मतलब सफ़लता होता है।
+* **Professional Approach**: हर स्थिति (डेटा मिलना, रिसोर्स न मिलना, अमान्य इनपुट, सर्वर डाउन) के लिए सही और सटीक HTTP स्टेटस कोड तथा स्टैंडर्ड JSON एरर फॉर्मेट रिटर्न करना।
+
+---
+
+## 2. HTTP Status Codes Family Overview
+
+HTTP स्टेटस कोड्स को 5 मुख्य परिवारों (Families) में वर्गीकृत किया गया है:
+
+| Status Code Family | Category / Purpose | Examples & Description |
+| :--- | :--- | :--- |
+| **`1xx`** | **Informational** | रिक्वेस्ट प्राप्त हुई, प्रोसेस जारी है। |
+| **`2xx`** | **Success** | **`200 OK`**: सफल रीड/अपडेट।<br>**`201 Created`**: नई रिसोर्स सफलतापूर्वक क्रिएट होना।<br>**`204 No Content`**: रिसोर्स सफलतापूर्वक डिलीट होना (बॉडी खाली रहती है)। |
+| **`3xx`** | **Redirection** | **`301 Moved Permanently`**, **`302 Found`**: यूआरएल रीडायरेक्शन। |
+| **`4xx`** | **Client-Side Errors** | **`400 Bad Request`**: अमान्य इनपुट/वैलिडेशन फेलियर।<br>**`404 Not Found`**: मांगी गई रिसोर्स डेटाबेस में मौजूद नहीं है।<br>**`409 Conflict`**: डेटा डुप्लिकेशन (e.g., ईमेल आईडी पहले से मौजूद होना)। |
+| **`5xx`** | **Server-Side Errors** | **`500 Internal Server Error`**: अनहैंडल्ड एक्सेप्शन, बग या डेटाबेस सर्वर डाउन होना। |
+
+---
+
+## 3. Standardizing REST Endpoints (Removing Redundant Paths)
+
+एक प्रोफेशनल REST API में यूआरएल पाथ के अंदर क्रिया/एक्शन शब्द (`/create`, `/get`, `/update`, `/delete`) नहीं लिखे जाते। इसके बजाय, रिसोर्स पाथ (`/api/students`) और **HTTP Verbs** (`POST`, `GET`, `PUT`, `DELETE`) का कॉम्बिनेशन यूज़ किया जाता है:
+
+* **❌ Beginner Endpoints**:
+  * `POST /api/students/create`
+  * `GET /api/students/get`
+  * `PUT /api/students/update`
+  * `DELETE /api/students/delete`
+
+* **✅ Professional REST Standard Endpoints**:
+  * **`POST /api/students`**: नया स्टूडेंट क्रिएट करना।
+  * **`GET /api/students/{id}`**: पाथ वेरिएबल (`@PathVariable`) का उपयोग करके विशिष्ट स्टूडेंट फेच करना।
+  * **`GET /api/students`**: सभी स्टूडेंट्स की लिस्ट फेच करना।
+  * **`PUT /api/students/{id}`**: किसी स्टूडेंट का डेटा अपडेट करना।
+  * **`DELETE /api/students/{id}`**: किसी स्टूडेंट को हार्ड-डिलीट करना।
+  * **`PATCH /api/students/{id}`**: आंशिक बदलाव/सॉफ्ट-डिलीट करना।
+
+---
+
+## 4. Why Handling Exceptions in Controllers is Bad Practice
+
+कंट्रोलर मेथड्स के अंदर `if-else` चेक्स लगाने (e.g., `if (student == null) return ResponseEntity.notFound().build()`) से निम्नलिखित समस्याएँ होती हैं:
+1. **Controller Clutter**: हर कंट्रोलर मेथड में वैलिडेशन और null-चेक्स का कोड भरने से कंट्रोलर बहुत बल्की और गंदा हो जाता है।
+2. **Violation of Single Responsibility Principle (SRP)**: कंट्रोलर का काम केवल क्लाइंट से रिक्वेस्ट रिसीव करना और उसे सर्विस लेयर को ट्रांसफर करना है; एक्सेप्शन हैंडलिंग उसका काम नहीं है।
+3. **Inconsistent Error Responses**: अलग-अलग कंट्रोलर्स में अलग-अलग एरर फॉर्मेट्स क्लाइंट के पास चले जाते हैं।
+
+### Solution: Separate Architectural Flows
+* **Happy Flow**: Client \\(\rightarrow\\) Controller \\(\rightarrow\\) Service \\(\rightarrow\\) Repository \\(\rightarrow\\) Controller \\(\rightarrow\\) Client।
+* **Exception Flow**: Client \\(\rightarrow\\) Controller \\(\rightarrow\\) Service \\(\rightarrow\\) **Exception Thrown** \\(\rightarrow\\) **Global Exception Handler** \\(\rightarrow\\) Client।
+
+---
+
+## 5. Spring Boot Default Exception Handling Mechanics
+
+जब एप्लिकेशन में कोई भी अनहैंडल्ड एक्सेप्शन आती है और डेवलपर ने कस्टम एक्सेप्शन हैंडलर नहीं बनाया होता, तो स्प्रिंग बूट का डिफ़ॉल्ट मैकेनिज्म काम करता है:
+
+```
+Exception Thrown ---> Intercepted by Spring MVC ---> Redirects to /error Endpoint ---> Generates Default JSON / White Label Error Page
+```
+
+1. **`/error` Redirection**: स्प्रिंग बूट डिफ़ॉल्ट रूप से एक्सेप्शन को एक स्पेशल एंडपॉइंट **`/error`** की तरफ रीडायरेक्ट कर देता है।
+2. **Client-Specific Output**:
+   * **Postman / REST Clients**: एक डिफ़ॉल्ट JSON बॉडी भेजता है जिसमें `timestamp`, `status` (500), `error`, और `path` होता है।
+   * **Web Browser**: एक **White Label Error Page** (HTML Page) रेंडर करता है।
+3. **Debugging Property**:
+   स्थानीय डेवलपमेंट के दौरान डिफ़ॉल्ट रिस्पॉन्स में एक्सेप्शन का मैसेज देखने के लिए `application.properties` में यह प्रॉपर्टी जोड़ी जाती है:
+   ```properties
+   spring.web.error.include-message=always
+   ```
+   *(नोट: सुरक्षा कारणों से प्रोडक्शन एनवायरनमेंट में इसे हमेशा हटा कर रखा जाता है)।*
+
+---
+
+## 6. Architecture of Custom Global Exception Handling (`@RestControllerAdvice`)
+
+एक सेंट्रल हेल्पर क्लास बनाकर पूरी एप्लिकेशन की एक्सेप्शन्स को एक जगह इंटरसेप्ट किया जाता है।
+
+### 6.1 `@ControllerAdvice` vs. `@RestControllerAdvice`
+* **`@ControllerAdvice`**: पारंपरिक MVC एप्लिकेशन्स के लिए जो HTML/JSP व्यूज रेंडर करती हैं।
+* **`@RestControllerAdvice`**: REST APIs के लिए। यह `@ControllerAdvice` और `@ResponseBody` का कॉम्बिनेशन है, जो रिटर्न किए गए ऑब्जेक्ट्स को ऑटोमैटिकली **JSON** फॉर्मेट में सीरियलाइज़ कर देता है।
+
+---
+
+## 7. Custom Exception Classes & Service Layer Implementation
+
+कस्टम एक्सेप्शन बनाने के लिए `RuntimeException` को एक्सटेंड किया जाता है।
+
+### 7.1 Custom Exception Classes Creation
+
+#### 1. ResourceNotFoundException
+```java
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
+```
+
+#### 2. DuplicateResourceException
+```java
+public class DuplicateResourceException extends RuntimeException {
+    public DuplicateResourceException(String message) {
+        super(message);
+    }
+}
+```
+
+---
+
+### 7.2 Service Layer Logic (Using `orElseThrow`)
+
+सर्विस लेयर में JPA रिपॉजिटरी के साथ `.orElseThrow()` का उपयोग करके सीधे कस्टम एक्सेप्शन्स थ्रो की जाती हैं:
+
+```java
+@Service
+public class StudentService {
+
+    @Autowired
+    private StudentRepository studentRepository;
+
+    // READ BY ID
+    public StudentResponseDTO getStudentById(Long id) {
+        Student student = studentRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Student with ID " + id + " not found")); //
+        return mapToDTO(student);
+    }
+
+    // CREATE
+    public StudentResponseDTO createStudent(StudentRequestDTO dto) {
+        if (studentRepository.existsByEmail(dto.getEmail())) { //
+            throw new DuplicateResourceException("Student with email " + dto.getEmail() + " already exists"); //
+        }
+        Student student = mapToEntity(dto);
+        Student savedStudent = studentRepository.save(student);
+        return mapToDTO(savedStudent);
+    }
+
+    // DELETE
+    public void deleteStudent(Long id) {
+        Student student = studentRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Student with ID " + id + " not found")); //
+        studentRepository.delete(student); //
+    }
+}
+```
+
+---
+
+## 8. Custom Error Response DTOs
+
+क्लाइंट को एक समान और संरचित (Consistent) एरर JSON भेजने के लिए DTOs बनाए जाते हैं।
+
+### 8.1 Standard Exception Response DTO (`ExceptionResponseDTO.java`)
+```java
+public class ExceptionResponseDTO {
+    private LocalDateTime timestamp;
+    private int status;
+    private String error;
+    private String message;
+    private String path;
+
+    // All-args Constructor, Getters, Setters
+}
+```
+
+---
+
+### 8.2 Validation Exception Response DTO (`ValidationExceptionResponseDTO.java`)
+DTO वैलिडेशन फेलियर्स के लिए एक स्पेशल DTO बनाया जाता है जिसमें फ़ील्ड-वार एरर मैपिंग होती है:
+
+```java
+public class ValidationExceptionResponseDTO {
+    private LocalDateTime timestamp;
+    private int status;
+    private String error;
+    private String message;
+    private String path;
+    private Map<String, String> fieldErrors; // Maps field name -> error message
+
+    // All-args Constructor, Getters, Setters
+}
+```
+
+---
+
+## 9. Complete Global Exception Handler Implementation
+
+`@RestControllerAdvice` के अंदर `@ExceptionHandler` एनोटेशन लगाकर अलग-अलग एक्सेप्शन्स के लिए विशिष्ट हैंडलर मेथड्स लिखे जाते हैं:
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // 1. Handle Resource Not Found Exception (HTTP 404)
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleResourceNotFound(
+            ResourceNotFoundException ex, HttpServletRequest request) { //
+        
+        ExceptionResponseDTO response = new ExceptionResponseDTO(
+            LocalDateTime.now(),
+            HttpStatus.NOT_FOUND.value(), // 404
+            HttpStatus.NOT_FOUND.getReasonPhrase(),
+            ex.getMessage(), //
+            request.getRequestURI() //
+        );
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    // 2. Handle Duplicate Resource Exception (HTTP 409)
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleDuplicateResource(
+            DuplicateResourceException ex, HttpServletRequest request) { //
+        
+        ExceptionResponseDTO response = new ExceptionResponseDTO(
+            LocalDateTime.now(),
+            HttpStatus.CONFLICT.value(), // 409
+            HttpStatus.CONFLICT.getReasonPhrase(),
+            ex.getMessage(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    // 3. Handle DTO Validation Failures (@Valid -> MethodArgumentNotValidException) (HTTP 400)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationExceptionResponseDTO> handleValidationException(
+            MethodArgumentNotValidException ex, HttpServletRequest request) { //
+
+        Map<String, String> errors = new HashMap<>();
+        
+        // Extract all field errors from BindingResult
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            errors.put(error.getField(), error.getDefaultMessage()) //
+        );
+
+        ValidationExceptionResponseDTO response = new ValidationExceptionResponseDTO(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(), // 400
+            HttpStatus.BAD_REQUEST.getReasonPhrase(),
+            "Validation Failed", //
+            request.getRequestURI(),
+            errors //
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // 4. Fallback Generic Exception Handler (HTTP 500)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionResponseDTO> handleGenericException(
+            Exception ex, HttpServletRequest request) { //
+        
+        ExceptionResponseDTO response = new ExceptionResponseDTO(
+            LocalDateTime.now(),
+            HttpStatus.INTERNAL_SERVER_ERROR.value(), // 500
+            HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+            "Something went wrong. Please try again later.", // Generic safety-net message
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+---
+
+## 10. Clean Controller Layer Implementation
+
+ग्लोबल एक्सेप्शन हैंडलर लगाने के बाद कंट्रोलर लेयर एकदम साफ़ और सरल हो जाती है:
+
+```java
+@RestController
+@RequestMapping("/api/students")
+public class StudentController {
+
+    @Autowired
+    private StudentService studentService;
+
+    // CREATE: POST /api/students
+    @PostMapping
+    public ResponseEntity<StudentResponseDTO> createStudent(@Valid @RequestBody StudentRequestDTO dto) { //
+        StudentResponseDTO savedStudent = studentService.createStudent(dto);
+        return new ResponseEntity<>(savedStudent, HttpStatus.CREATED); // 201 Created
+    }
+
+    // READ BY ID: GET /api/students/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Long id) { //
+        StudentResponseDTO student = studentService.getStudentById(id);
+        return ResponseEntity.ok(student); // 200 OK
+    }
+
+    // UPDATE: PUT /api/students/{id}
+    @PutMapping("/{id}")
+    public ResponseEntity<StudentResponseDTO> updateStudent(
+            @PathVariable Long id, @Valid @RequestBody StudentRequestDTO dto) { //
+        StudentResponseDTO updatedStudent = studentService.updateStudent(id, dto);
+        return ResponseEntity.ok(updatedStudent); // 200 OK
+    }
+
+    // DELETE: DELETE /api/students/{id}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) { //
+        studentService.deleteStudent(id);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
+}
+```
+
+---
+
+## 11. Sample Output JSON Format
+
+### 11.1 Not Found Error Response (HTTP 404)
+```json
+{
+  "timestamp": "2026-10-13T13:45:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Student with ID 100 not found",
+  "path": "/api/students/100"
+}
+```
+
+### 11.2 Validation Error Response (HTTP 400)
+```json
+{
+  "timestamp": "2026-10-13T13:45:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation Failed",
+  "path": "/api/students",
+  "fieldErrors": {
+    "name": "Name cannot be null or empty",
+    "age": "Student must be at least 18 years old",
+    "email": "Student email must be valid"
+  }
+}
+```
+
+---
+
+💡 **क्या आप इस Spring Boot Exception Handling टॉपिक के आधार पर कोई interactive Quiz या Flashcard deck बनाना चाहेंगे?**
+
+# 📚 Complete Video Notes: Spring Boot Profiles & YAML Explained (Dev vs Prod Configuration)
+
+---
+
+## 1. Environment & Configuration Needs in Real-World Apps
+
+जब हम स्प्रिंग बूट (Spring Boot) एप्लीकेशन बनाते हैं, तो एप्लीकेशन के दो मुख्य भाग होते हैं:
+
+1. **Code Part (Main Business Logic)**: 
+   * कंट्रोलर लेयर, सर्विस लेयर, रिपॉजिटरी लेयर।
+   * यह लॉजिक सभी एनवायरनमेंट में **समान (Unchanged)** रहता है।
+2. **Configuration Part**:
+   * डेटाबेस यूआरएल (`db.url`), यूजरनेम, पासवर्ड, सर्वर पोर्ट (`server.port`), थर्ड-पार्टी एपीआई कीज़।
+   * यह जानकारी हर एनवायरनमेंट में **बदलती (Environment-Specific)** रहती है।
+
+### एनवायरनमेंट के प्रकार (Environments Spectrum):
+* **Local Machine**: डेवलपर की अपनी लोकल मशीन (e.g., `localhost:8080`, बेसिक लोकल MySQL DB)।
+* **Dev Environment**: डेवलपमेंट टेस्टिंग एनवायरनमेंट।
+* **QA / Staging / Pre-Prod Environment**: प्रोडक्शन पर कोड लाइव करने से पहले QA टीम और डेवलपर्स द्वारा प्रोडक्शन-जैसे सेटअप पर फाइनल टेस्टिंग एनवायरनमेंट।
+* **Production (Prod)**: लाइव एनवायरनमेंट जहाँ वास्तविक एंड-यूजर्स एप्लीकेशन का उपयोग करते हैं (e.g., हाईली सिक्योर DB क्रेडिटेंशियल्स, कस्टम सर्वर पोर्ट्स)।
+
+---
+
+## 2. Code में Configuration Hardcode करने की समस्याएँ
+
+यदि हम डेटाबेस का यूआरएल या कोई मैसेज सीधे जावा कोड में हार्डकोड कर दें, तो:
+1. **Frequent Re-Deployments**: एनवायरनमेंट बदलने पर कोड मॉडिफाई करना पड़ेगा, फिर Git commit, push और पूरा डिप्लॉयमेंट पाइपलाइन दोबारा चलाना पड़ेगा।
+2. **Security Vulnerability**: DB यूजरनेम और पासवर्ड जैसे सेंसिटिव डेटा को जावा फ़ाइलों में लिखने से कोड Git/GitHub पर अपलोड होने पर **क्रेडिटेंशियल लीक (Data Leak)** का गंभीर खतरा रहता है।
+3. **Tight Coupling**: कोड और कॉन्फ़िगरेशन आपस में टाइटली कपल (Tightly Coupled) हो जाते हैं।
+
+---
+
+## 3. Configuration Formats: Properties vs. YAML (`.properties` vs `.yml`)
+
+Spring Boot में कॉन्फ़िगरेशन डिक्लेयर करने के दो तरीके हैं:
+
+### 3.1 `application.properties` (Flat Key-Value Format)
+* फ़्लैट स्ट्रक्चर में डॉट्स (`.`) का उपयोग करके की-वैल्यू पेयर्स लिखे जाते हैं:
+  ```properties
+  spring.application.name=profile-demo
+  server.port=9090
+  app.welcome.message=Hello Welcome to My App
+  app.welcome.code=200
+  app.welcome.users=Aditya,Rohit,Rohan,Sohan
+  ```
+
+### 3.2 `application.yml` / `application.yaml` (Hierarchical / Tree Format)
+* पैरेंट-चाइल्ड (Tree-like) स्ट्रक्चर में **इंडेंटेशन (Indentation / Spaces)** का उपयोग किया जाता है (जैसे Python में):
+  ```yaml
+  spring:
+    application:
+      name: profile-demo
+
+  server:
+    port: 9090
+
+  app:
+    welcome:
+      message: "Hello Welcome to My App"
+      code: 200
+      users:
+        - Aditya
+        - Rohit
+        - Rohan
+        - Sohan
+  ```
+
+### Key Comparison & Internal Working:
+* **Priority Rule**: यदि प्रोजेक्ट के `src/main/resources` में `application.properties` और `application.yml` दोनों फ़ाइलें मौजूद हैं, तो **Spring Boot डिफ़ॉल्ट रूप से `application.properties` को प्राथमिकता (Priority) देता है**।
+* **Internal Conversion**: Spring Boot रनटाइम पर YAML फ़ाइल को भी आंतरिक रूप से फ़्लैट की-वैल्यू पेयर्स में ही कन्वर्ट करता है।
+
+---
+
+## 4. Code में Configuration Inject करना (`@Value`)
+
+`application.properties` या `application.yml` में डिफाइन की गई वैल्यूज को जावा बीन्स (जैसे `@RestController`) में इंजेक्ट करने के लिए **`@Value`** एनोटेशन का उपयोग किया जाता है:
+
+```java
+@RestController
+@RequestMapping("/api/demo")
+public class DemoController {
+
+    @Value("${app.welcome.message}")
+    private String message;
+
+    @Value("${app.welcome.code}")
+    private Integer code;
+
+    @Value("${app.welcome.users}")
+    private List<String> users;
+
+    @GetMapping("/greet")
+    public ResponseEntity<String> greet() {
+        return ResponseEntity.ok(message + " " + code);
+    }
+}
+```
+
+---
+
+## 5. Spring Boot Profiles (Profile-based Configuration)
+
+अलग-अलग एनवायरमेंट्स के लिए अलग-अलग प्रॉपर्टी फ़ाइलें बनाने की तकनीक को **Profile Management / Profiling** कहते हैं।
+
+### 5.1 Naming Convention (`application-{profile}.properties`)
+* **`application.properties`**: मुख्य/ग्लोबल फ़ाइल (कॉमन कॉन्फ़िगरेशन्स जो हर एनवायरनमेंट में सेम रहती हैं)।
+* **`application-dev.properties`**: केवल Dev एनवायरनमेंट के लिए (e.g., `server.port=9090`, `app.welcome.message=Dev Hello`).
+* **`application-staging.properties`**: केवल Staging एनवायरनमेंट के लिए (e.g., `server.port=8080`, `app.welcome.message=Staging Hello`).
+* **`application-prod.properties`**: केवल Production एनवायरनमेंट के लिए (e.g., `server.port=8191`, `app.welcome.message=Prod Hello`).
+
+> 💡 **Dual Loading Mechanics**: जब कोई प्रोफ़ाइल (जैसे `dev`) एक्टिव होती है, तो Spring Boot दो फ़ाइलों को मिलाकर पढ़ता है: **`application.properties` (Common)** + **`application-dev.properties` (Profile-Specific)**। Profile-specific वैल्यूज़ कॉमन फ़ाइल की वैल्यूज़ को ओवरराइड कर देती हैं।
+
+---
+
+### 5.2 Profiles को Activate करने के तरीके
+
+#### 1. Internal Activation (In `application.properties`):
+```properties
+spring.profiles.active=dev
+```
+*(नोट: यह तरीका सही नहीं माना जाता क्योंकि इसके लिए भी प्रॉपर्टी फ़ाइल में जाकर कोड बदलना पड़ता है)।*
+
+#### 2. External Activation via Command Line (Best Practice):
+बिना कोड या फ़ाइल बदले, एप्लीकेशन जार/रन कमांड के साथ प्रोफ़ाइल पास की जाती है:
+
+* **Maven Command**:
+  ```bash
+  mvn spring-boot:run -Dspring-boot.run.profiles=prod
+  ```
+* **Packaged JAR Command**:
+  ```bash
+  java -jar app.jar --spring.profiles.active=prod
+  ```
+  या
+  ```bash
+  java -Dspring.profiles.active=prod -jar app.jar
+  ```
+
+#### 3. Environment Variables (CI/CD Pipelines / Docker / Kubernetes):
+* ऑपरेटिंग सिस्टम या सीआईसीडी पाइपलाइन (Jenkins/GitHub Actions/K8s) के एनवायरनमेंट वेरिएबल के रूप में पास करना।
+
+---
+
+## 6. Profile-Dependent Beans Creation (`@Profile` Annotation)
+
+प्रॉपर्टी फ़ाइलों के अलावा, जब अलग-अलग एनवायरनमेंट के आधार पर **अलग-अलग जावा बीन्स (Java Bean Implementations)** को इन्स्टैंशिएट करना हो, तो **`@Profile`** एनोटेशन का उपयोग किया जाता है।
+
+### Real-World Use Case Scenario: Notification Service
+* **Production**: जब कोई यूजर एंडपॉइंट हिट करे, तो असली SMS/Email जाना चाहिए।
+* **Development / Testing**: रियल SMS का खर्चा बचाने और स्पैमिंग रोकने के लिए केवल एक डमी (Dummy) नोटिफिकेशन जाना चाहिए।
+
+```
+                               NotificationService (Interface)
+                                              |
+                     +------------------------+------------------------+
+                     |                                                 |
+       NotificationServiceImpl                              DummyNotificationServiceImpl
+   (Real Email/SMS Integration)                              (Dummy Console Logging)
+       [@Profile("prod")]                              [@Profile({"dev", "default", "staging"})]
+```
+
+### 6.1 Real Implementation (`NotificationServiceImpl.java`)
+```java
+@Service
+@Profile("prod") // केवल Production Profile एक्टिव होने पर ही यह Bean बनेगा
+public class NotificationServiceImpl implements NotificationService {
+
+    @Override
+    public String sendNotification() {
+        // Actual SMS / Email Gateway Integration
+        return "Real Notification Sent Successfully!";
+    }
+}
+```
+
+### 6.2 Dummy Implementation (`DummyNotificationServiceImpl.java`)
+```java
+@Service
+@Profile({"dev", "default", "staging"}) // Dev, Staging या Default में यह Bean बनेगा
+public class DummyNotificationServiceImpl implements NotificationService {
+
+    @Override
+    public String sendNotification() {
+        // No real email sent
+        return "Here is a Dummy Notification!";
+    }
+}
+```
+
+### 6.3 Controller Dependency Injection Flow
+```java
+@RestController
+@RequestMapping("/api/notification")
+public class NotificationController {
+
+    private final NotificationService notificationService;
+
+    // Constructor Injection
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    @PostMapping
+    public ResponseEntity<String> send() {
+        return ResponseEntity.ok(notificationService.sendNotification());
+    }
+}
+```
+
+---
+
+## 7. Profile Execution & Bean Injection Summary
+
+| Active Profile Command | Loaded Properties File | Instantiated Bean | API Output |
+| :--- | :--- | :--- | :--- |
+| `mvn spring-boot:run` *(Default)* | `application.properties` | `DummyNotificationServiceImpl` | `"Here is a Dummy Notification!"` (Port: `8080`) |
+| `mvn spring-boot:run -Dspring-boot.run.profiles=dev` | `application.properties` + `application-dev.properties` | `DummyNotificationServiceImpl` | `"Here is a Dummy Notification!"` (Port: `9090`) |
+| `mvn spring-boot:run -Dspring-boot.run.profiles=prod` | `application.properties` + `application-prod.properties` | `NotificationServiceImpl` | `"Real Notification Sent Successfully!"` (Port: `8191`) |
+
+---
+
+💡 **क्या आप Spring Boot Profiles और YAML कॉन्फ़िगरेशन पर आधारित प्रैक्टिस के लिए कोई Interactive Quiz या Flashcards बनाना चाहेंगे?**
+
+
+# 📚 Complete Masterclass Notes: Spring Boot Filters (`FilterChain`, Logging, Auth & Request Flow)
+
+---
+
+## 1. Real-World Need & Problem Statement
+
+In real-world enterprise applications with multiple layers (**Controller \\(\rightarrow\\) Service \\(\rightarrow\\) Repository**), every incoming client request travels through these layers and returns a response.
+
+### The Problem: Cross-Cutting Infrastructure Concerns
+Imagine requiring the following tasks before processing ANY incoming HTTP API request across 50+ endpoints:
+1. **Logging Requests**: Printing or logging request endpoints, HTTP verbs (`GET`, `POST`), and headers.
+2. **User Authentication**: Validating tokens or security keys to ensure unauthenticated users cannot hit endpoints.
+3. **Request ID Generation**: Generating a unique integer/UUID (e.g., `X-Request-ID`) to track a request across distributed logs.
+4. **Response Header Modification**: Attaching tracing headers or metadata to outgoing responses.
+5. **Turnaround Time Measurement**: Measuring the exact millisecond duration from request entry to final response exit.
+
+---
+
+### Why Handling Infrastructure Logic in Controllers is a Bad Practice
+
+* **Violation of Single Responsibility Principle (SRP)**: The controller's sole job is to receive API requests and delegate to the service layer. It should not manage security, logging, or infrastructure metrics.
+* **Code Duplication & Tight Coupling**: Writing logging or authentication logic inside every controller method duplicates code and tightly couples business logic with infrastructure concerns.
+* **Helper Class Limitations**: Creating a separate utility class still forces every single controller method to explicitly instantiate and invoke helper methods, leaving the controller tightly coupled.
+
+**Solution**: Use **Filters** (and Interceptors) to centralize cross-cutting concerns at a common execution point.
+
+---
+
+## 2. Architecture & Placement of Filters
+
+Filters reside at the **Servlet Container Level** (Apache Tomcat) **BEFORE the `DispatcherServlet`**.
+
+```
+  [ Client ]
+      |
+  ( HTTP Request )
+      v
+  [ Filter 1 ] ---> [ Filter 2 ] ---> [ Filter 3 ]
+                                            |
+                                            v
+                                  [ DispatcherServlet ]
+                                            |
+                                            v
+                                   [ Controller Layer ]
+                                            |
+                                            v
+                                    [ Service Layer ]
+                                            |
+                                            v
+                                  [ Repository Layer ]
+```
+
+### Complete Request & Response Flow:
+1. **Incoming Request**: Client \\(\rightarrow\\) Filter 1 \\(\rightarrow\\) Filter 2 \\(\rightarrow\\) Filter 3 \\(\rightarrow\\) `DispatcherServlet` \\(\rightarrow\\) Controller \\(\rightarrow\\) Service \\(\rightarrow\\) Repository.
+2. **Outgoing Response**: Repository \\(\rightarrow\\) Service \\(\rightarrow\\) Controller \\(\rightarrow\\) `DispatcherServlet` \\(\rightarrow\\) Filter 3 \\(\rightarrow\\) Filter 2 \\(\rightarrow\\) Filter 1 \\(\rightarrow\\) Client.
+
+---
+
+## 3. Key Characteristics of Filters
+
+### 3.1 Raw Request Processing
+Because Filters run **before** `DispatcherServlet`:
+* Filters receive **raw requests** (`ServletRequest`, `ServletResponse`).
+* `DispatcherServlet` has not yet evaluated `HandlerMapping`, so **Filters do not know which specific Controller or method will handle the request**.
+* Filters are ideal for **general-purpose, global infrastructure operations** common across all endpoints.
+
+---
+
+### 3.2 What Can Filters Inspect & Perform?
+
+* **Inspect & Modify**: Inspect request headers, cookies, query parameters, authentication tokens, and URI paths.
+* **Security & Short-Circuiting**: Authenticate requests and **block unauthorized requests** immediately without forwarding them to `DispatcherServlet`.
+* **Logging & Tracing**: Log incoming payloads/URIs and outgoing HTTP status codes.
+* **Header Modification**: Attach custom headers (such as `X-Request-ID`) to responses.
+* **Turnaround Time Measurement**: Track the total execution duration of a request.
+* **Static Resource Handling**: Handle requests for static assets (`/static/*`, `logo.png`, `favicon.ico`, `/error`) that never reach a controller.
+
+---
+
+## 4. The Servlet `Filter` Interface & Lifecycle Methods
+
+The `Filter` interface originates from the **Jakarta Servlet API** (`jakarta.servlet.Filter`) and is managed by the Servlet Container (Tomcat).
+
+```java
+package jakarta.servlet;
+
+public interface Filter {
+    default void init(FilterConfig filterConfig) throws ServletException {}
+    void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
+            throws IOException, ServletException;
+    default void destroy() {}
+}
+```
+
+### Lifecycle Methods:
+1. **`init(FilterConfig filterConfig)`**: Executed **once** when the Filter bean/instance is instantiated during container startup.
+2. **`doFilter(ServletRequest request, ServletResponse response, FilterChain chain)`**: Executed on **every incoming HTTP request**. Contains the core pre-processing and post-processing logic.
+3. **`destroy()`**: Executed **once** when the Servlet container shuts down or undeploys the application for resource cleanup.
+
+---
+
+## 5. Technical Mechanics of `doFilter()` & `FilterChain`
+
+### 5.1 Type Casting to `HttpServletRequest`
+The generic `ServletRequest` and `ServletResponse` types accommodate non-HTTP protocols. For web applications, cast these generic parameters to `HttpServletRequest` and `HttpServletResponse` to access HTTP-specific methods (`getHeader()`, `getMethod()`, `getRequestURI()`, `setStatus()`).
+
+```java
+HttpServletRequest httpRequest = (HttpServletRequest) request;
+HttpServletResponse httpResponse = (HttpServletResponse) response;
+```
+
+---
+
+### 5.2 How `FilterChain.doFilter(...)` Works
+`FilterChain` manages sequential Filter execution. Calling `chain.doFilter(request, response)` delegates execution to the **next filter in the chain**. If the current filter is the last filter, it forwards execution directly to the `DispatcherServlet`.
+
+```
+  [ Filter 1 ] --- chain.doFilter() ---> [ Filter 2 ] --- chain.doFilter() ---> [ DispatcherServlet ]
+```
+
+---
+
+## 6. Practical Implementation Scenarios
+
+### Scenario 1: Request & Response Logging + Response Time Measurement
+
+#### Implementation Guidelines:
+* Capture start time using `System.currentTimeMillis()` before calling `chain.doFilter(...)`.
+* **Best Practice (`try-finally`)**: Always place `chain.doFilter(...)` inside a `try` block and execute post-processing/metrics inside a `finally` block to guarantee execution even if controllers or services throw exceptions.
+
+```java
+@Component
+@Order(2)
+public class LoggingFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        // 1. Pre-Processing: Log Request Details & Capture Start Time
+        long startTime = System.currentTimeMillis();
+        String requestId = UUID.randomUUID().toString();
+        
+        // Attach unique Request ID header to response before committing
+        httpResponse.setHeader("X-Request-ID", requestId);
+
+        System.out.println("Incoming Request: " + httpRequest.getMethod() + " " + httpRequest.getRequestURI());
+
+        try {
+            // 2. Delegate to next Filter or DispatcherServlet
+            chain.doFilter(request, response);
+        } finally {
+            // 3. Post-Processing: Log Response Metrics (Guaranteed Execution)
+            long duration = System.currentTimeMillis() - startTime;
+            System.out.println("Response Status: " + httpResponse.getStatus());
+            System.out.println("API Turnaround Time: " + duration + " ms");
+        }
+    }
+}
+```
+
+> **Why set response headers BEFORE `chain.doFilter(...)`?**  
+> Once downstream execution finishes and control returns from `chain.doFilter(...)`, the HTTP response may already be committed and read-only. Setting headers prior to `chain.doFilter(...)` ensures headers are attached safely.
+
+---
+
+### Scenario 2: Authentication Filter (Short-Circuiting)
+
+When authentication fails (e.g., missing header or invalid token), set HTTP status `401 Unauthorized` (`HttpServletResponse.SC_UNAUTHORIZED`) and **return immediately without calling `chain.doFilter(...)`**. This **short-circuits** the request, preventing it from reaching `DispatcherServlet` or Controllers.
+
+```java
+@Component
+@Order(1)
+public class AuthenticationFilter implements Filter {
+
+    private static final String AUTH_TOKEN = "12345";
+    private static final String API_KEY = "Secret123";
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        String token = httpRequest.getHeader("Token");
+        String apiKey = httpRequest.getHeader("X-API-Key");
+
+        // Validate Headers
+        if (token == null || !AUTH_TOKEN.equals(token)) {
+            // Short-Circuiting: Block request and return 401 Unauthorized
+            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // HTTP 401
+            return;
+        }
+
+        if (apiKey == null || !API_KEY.equals(apiKey)) {
+            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            httpResponse.setContentType("application/json");
+            httpResponse.getWriter().write("{\"message\": \"Invalid or missing API Key\"}");
+            return;
+        }
+
+        // Token & API Key valid -> Pass to next filter
+        chain.doFilter(request, response);
+    }
+}
+```
+
+---
+
+## 7. Filter Ordering (`@Order`)
+
+When multiple Filters are defined as Spring Components (`@Component`), Spring Boot registers them in the Filter Chain.
+
+```java
+@Component
+@Order(1) // Runs FIRST: Security / Authentication
+public class AuthenticationFilter implements Filter { ... }
+
+@Component
+@Order(2) // Runs SECOND: Logging / Turnaround Metrics
+public class LoggingFilter implements Filter { ... }
+```
+
+### Why Ordering Matters:
+* **`@Order(1)` (AuthenticationFilter)**: Runs first to inspect incoming tokens. If unauthorized, it short-circuits execution before logging or business processing occurs.
+* **`@Order(2)` (LoggingFilter)**: Runs only after authentication succeeds.
+* **Without `@Order`**: Spring Boot determines Filter instantiation order arbitrarily, which can vary across machines or deployments.
+
+---
+
+## 8. Summary Comparison: Filter Characteristics
+
+| Feature | Filter Behavior |
+| :--- | :--- |
+| **Architectural Layer** | Servlet Container Level (Before `DispatcherServlet`) |
+| **Specification** | Jakarta Servlet API (`jakarta.servlet.Filter`) |
+| **Handler Context** | Raw Request/Response (Does NOT know target Controller method) |
+| **Execution Control** | Can short-circuit requests via `return` without calling `chain.doFilter()` |
+| **Ordering Mechanism** | Enforced via Spring's `@Order(n)` annotation |
+| **Primary Use Cases** | Authentication, Request/Response Logging, Correlation IDs (`X-Request-ID`), Response Timing, Encoding |
+
+---
+
+💡 **Would you like me to generate an interactive Practice Quiz or a set of Flashcards covering these Spring Boot Filter concepts?**
+
+
+	# 📚 Complete Video Notes: Spring Boot Filters | Modify Requests, Response, Headers & Bodies (Video #20)
+
+---
+
+## 1. Introduction & Overview
+
+इस क्लास में हम **Spring Boot Filters** के एडवांस कॉन्सेप्ट्स को आगे बढ़ाते हैं। 
+
+### मुख्य बातें:
+* **Servlet Specification**: फिल्टर्स वस्तुतः **Jakarta Servlet API** से आते हैं, स्प्रिंग कोर से नहीं।
+* **Request-Response Flow**:  
+  `Client ➔ FilterChain (Filter 1 ➔ Filter 2) ➔ DispatcherServlet ➔ Controller ➔ Service ➔ Repository ➔ Response Output`
+* **मुख्य उद्देश्य**: फिल्टर्स के ज़रिए **Request** और **Response** को कैसे मॉनिटर व ऑल्टर (Modify/Change) किया जाता है, **Wrappers** की ज़रूरत क्यों पड़ती है, और कौन-कौन सी चीज़ें **Good Coding Practices** में आती हैं तथा किन्हें भूलकर भी इंडस्ट्री में नहीं करना चाहिए।
+
+---
+
+## 2. Modifying HTTP Responses (Headers, Status Codes & Bodies)
+
+किसी भी HTTP Response में मुख्यतः 3 घटक होते हैं:
+1. **Status Code** (जैसे `200 OK`, `401 Unauthorized`)
+2. **Headers** (Key-Value Pairs)
+3. **Response Body** (JSON Payload)
+
+---
+
+### 2.1 Modifying Response Headers (`setHeader`)
+
+जब हम रिस्पॉन्स में कोई कस्टम हेडर (उदा. `X-Request-ID`) जोड़ना चाहते हैं:
+
+```java
+@Component
+public class ResponseHeaderFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        // 1. Typecast to HttpServletResponse
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        // 2. Generate Random Request ID using UUID
+        String requestId = UUID.randomUUID().toString();
+
+        // 3. Set Header BEFORE calling chain.doFilter(...)
+        httpResponse.setHeader("X-Request-ID", requestId);
+
+        // 4. Pass control to next filter / DispatcherServlet
+        chain.doFilter(request, response);
+    }
+}
+```
+
+#### ❓ महत्वपूर्ण प्रश्न: हेडर को `chain.doFilter()` से पहले क्यों सेट करते हैं, बाद में क्यों नहीं?
+* **कारण (Stream Commit State)**: जब `chain.doFilter()` निष्पादित होता है, तो कंट्रोलर निष्पादन के बाद `DispatcherServlet` रिस्पॉन्स को सर्वर आउटपुट स्ट्रीम पर लिख देता है और रिस्पॉन्स **कमिट (Commit)** हो जाता है। 
+* एक बार रिस्पॉन्स कमिट हो जाने के बाद वह **Non-Editable (Read-Only)** बन जाता है। यदि आप `chain.doFilter()` के बाद हेडर सेट करेंगे, तो वह क्लाइंट के पास नहीं पहुँचेगा!
+
+---
+
+### 2.2 Short-Circuiting & Modifying Status Codes + Body (Authentication Filter)
+
+यदि क्लाइंट अमान्य क्रेडेंशियल्स/टोकन भेजता है, तो फिल्टर से ही रिस्पॉन्स लौटाया जा सकता है (इसे ही **Short-Circuiting** कहते हैं):
+
+```java
+@Component
+public class AuthenticationFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        String token = httpRequest.getHeader("token");
+
+        if (token == null || !"12345".equals(token)) {
+            // 1. Set Status Code (401 Unauthorized)
+            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+            httpResponse.setContentType("application/json");
+
+            // 2. Write Response Body directly
+            httpResponse.getWriter().write("{\"message\": \"Authentication Is Required\"}");
+
+            // 3. RETURN IMMEDIATELY without calling chain.doFilter(...)
+            return;
+        }
+
+        // Token is valid -> Continue request
+        chain.doFilter(request, response);
+    }
+}
+```
+
+---
+
+### 2.3 Modifying Response Body After Controller Execution (`ContentCachingResponseWrapper`)
+
+#### ⚠️ समस्या:
+कंट्रोलर से रिस्पॉन्स बनने के बाद यदि हम फिल्टर में आकर रिस्पॉन्स बॉडी में कुछ जोड़ना चाहते हैं (उदा. `appName` जोड़ना), तो ओरिजिनल रिस्पॉन्स कमिट हो चुका होता है, इसलिए हम सीधे `httpResponse.getWriter().write()` नहीं कर सकते।
+
+#### 💡 समाधान: `ContentCachingResponseWrapper` (Decorator Pattern)
+हम स्प्रिंग के **`ContentCachingResponseWrapper`** का उपयोग करके ओरिजिनल रिस्पॉन्स के ऊपर एक कवर (Wrapper) चढ़ाते हैं। `DispatcherServlet` और `Controller` उसी रैपर में रिस्पॉन्स लिखते हैं, जिससे डेटा कैश्ड बफ़र में स्टोर हो जाता है और हम उसे एडिट कर पाते हैं।
+
+```java
+@Component
+public class ResponseBodyFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        // 1. Wrap the original HTTP Response
+        ContentCachingResponseWrapper wrappedResponse = 
+                new ContentCachingResponseWrapper(httpResponse);
+
+        // 2. Pass WRAPPED response to downstream filters & controllers
+        chain.doFilter(request, wrappedResponse);
+
+        // 3. Extract original response content as Byte Array
+        byte[] originalBodyBytes = wrappedResponse.getContentAsByteArray();
+        String originalBody = new String(originalBodyBytes);
+
+        // 4. Modify the String (Using Java 15/16 Text Blocks & Formatting)
+        String modifiedBody = """
+            {
+                "originalResponse": %s,
+                "appName": "Student Management System"
+            }
+            """.formatted(originalBody);
+
+        // 5. CRITICAL STEP: Clear the internal buffer!
+        // (अगर resetBuffer नहीं करेंगे तो ओरिजिनल और नया रिस्पॉन्स दो बार प्रिंट हो जाएगा)
+        wrappedResponse.resetBuffer();
+
+        // 6. Write modified body into wrapped response
+        wrappedResponse.getWriter().write(modifiedBody);
+
+        // 7. Copy modified content back to the REAL HttpServletResponse
+        wrappedResponse.copyBodyToResponse();
+    }
+}
+```
+
+#### 🚨 Good Practice Alert: क्या रिस्पॉन्स बॉडी को फिल्टर में मॉडिफाई करना चाहिए?
+* **बिल्कुल नहीं!** यह इंडस्ट्री में **Bad Practice** मानी जाती है।
+* रिस्पॉन्स का स्ट्रक्चर और कॉन्ट्रैक्ट हमेशा **Service & Controller Layer** द्वारा ही तय होना चाहिए। फिल्टर में रैपर लगाकर बॉडी बदलना क्लाइंट की अपेक्षाओं (Contract) को तोड़ सकता है।
+
+---
+
+## 3. Handling & Modifying Incoming Requests
+
+जब क्लाइंट सर्वर को HTTP Request भेजता है, तो उसमें 4 मुख्य भाग होते हैं:
+1. **HTTP Method** (`GET`, `POST`, `PUT`)
+2. **Request URI / Endpoint** (`/api/students`)
+3. **Headers & Query Parameters**
+4. **Request Body** (JSON Payload)
+
+---
+
+### 3.1 Read-Only Components (Headers, Parameters, Method, URI)
+
+`HttpServletRequest` केवल **Read-Only** होता है:
+* `getHeader("token")` \\(\rightarrow\\) पढ़ सकते हैं।
+* `getParameter("id")` \\(\rightarrow\\) पढ़ सकते हैं।
+* `getMethod()`, `getRequestURI()` \\(\rightarrow\\) पढ़ सकते हैं।
+* **`setHeader()` / `setParam()` / `setURI()` नाम के सेटर मेथड्स मौजूद ही नहीं होते!**
+
+> **कारण**: क्लाइंट द्वारा भेजा गया कॉन्ट्रैक्ट फाइनल होता है। फिल्टर को मनमाने ढंग से रिक्वेस्ट के हेडर्स या एंडपॉइंट्स बदलने का अधिकार नहीं होना चाहिए।
+
+---
+
+### 3.2 Reading Request Body & The Big Bug (`IllegalStateException`)
+
+`HttpServletRequest` में `getBody()` मेथड नहीं होता। डेटा दो तरीकों से प्राप्त होता है:
+1. `request.getInputStream()` (Raw Bytes Stream)
+2. `request.getReader()` (BufferedReader)
+
+#### ❓ Tomcat बॉडी को Input Stream के रूप में क्यों देता है?
+Tomcat नहीं जानता कि क्लाइंट JSON भेज रहा है, XML, HTML, Image, PDF या 2GB की वीडियो फाइल! इसलिए Tomcat डेटा को **Stream of Bytes** मान कर प्रोसेस करता है।
+
+---
+
+### 💣 The Critical Bug: `IllegalStateException`
+यदि आप किसी फिल्टर में केवल रिक्वेस्ट बॉडी को लॉग (Print) करने के लिए `getReader()` या `getInputStream()` चला लेते हैं:
+
+```java
+@Component
+public class RequestLoggingFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+
+        // 1. Reading Request Body using BufferedReader
+        BufferedReader reader = httpRequest.getReader();
+        StringBuilder body = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            body.append(line);
+        }
+
+        System.out.println("Request Body: " + body.toString());
+
+        // 2. Pass request to next filter / DispatcherServlet
+        chain.doFilter(request, response);
+    }
+}
+```
+
+#### ❌ परिणाम (Postman Result):
+`500 Internal Server Error` \\(\rightarrow\\) **`java.lang.IllegalStateException: getReader() has already been called for this request`**
+
+#### 🔍 इसके पीछे का कारण:
+InputStream एक बहती हुई नदी की तरह होती है। जब आप फिल्टर के अंदर `getReader()` करके पूरी स्ट्रिम रीड कर लेते हैं, तो **Input Stream खाली (Consume) हो जाती है**। 
+
+आगे चलकर जब `DispatcherServlet` में **Jackson Library** आती है ताकि JSON को `StudentDTO` ऑब्जेक्ट में कन्वर्ट कर सके, तो उसे स्ट्रीम खाली मिलती है और वह `IllegalStateException` थ्रो कर देती है!
+
+---
+
+## 4. Alternative Filter Declarations (`FilterRegistrationBean`)
+
+यदि आप क्लास पर `@Component` नहीं लगाना चाहते या फिल्टर को किसी खास URL पैटर्न पर ही चलाना चाहते हैं:
+
+### 4.1 `FilterConfig` Configuration Class
+
+```java
+@Configuration
+public class FilterConfig {
+
+    @Bean
+    public FilterRegistrationBean<DummyFilter> dummyFilterBean() {
+        FilterRegistrationBean<DummyFilter> registrationBean = new FilterRegistrationBean<>();
+
+        // 1. Set Filter Instance
+        registrationBean.setFilter(new DummyFilter());
+
+        // 2. Set Execution Priority Order
+        registrationBean.setOrder(1);
+
+        // 3. Add Specific URL Patterns (Cleanest Approach!)
+        registrationBean.addUrlPatterns("/api/*", "/admin/*");
+
+        return registrationBean;
+    }
+}
+```
+
+* **फ़ायदा**: `registrationBean.addUrlPatterns("/api/*")` के ज़रिए फिल्टर केवल उन्हीं URIs पर चलेगा जो `/api/` से शुरू होते हैं। गैर-ज़रूरी URL कॉल्स पर फिल्टर कॉल ही नहीं होगा।
+
+---
+
+## 5. Spring MVC's `OncePerRequestFilter`
+
+Servlet API की बजाय Spring Framework ने अपनी एक विशेष एब्सट्रैक्ट क्लास बनाई है — **`OncePerRequestFilter`**।
+
+### 5.1 `SpringDemoFilter` Implementation
+
+```java
+@Component
+public class SpringDemoFilter extends OncePerRequestFilter {
+
+    // 1. Typecasting की कोई आवश्यकता नहीं! (Directly provides HttpServletRequest/Response)
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        System.out.println("Executing Spring OncePerRequestFilter");
+
+        // Pass to next filter
+        filterChain.doFilter(request, response);
+    }
+
+    // 2. Conditional Execution (फ़िल्टर किस URL पर नहीं चलाना है)
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String uri = request.getRequestURI();
+        // अगर URI /api/ से शुरू नहीं होता है, तो फ़िल्टर मत चलाओ (Return true)
+        return !uri.startsWith("/api/");
+    }
+}
+```
+
+### 🌟 `OncePerRequestFilter` के फायदे:
+1. **No Manual Typecasting**: `ServletRequest` को `HttpServletRequest` में बार-बार टाइपकास्ट नहीं करना पड़ता।
+2. **Guaranteed Single Execution**: एक ही HTTP रिक्वेस्ट साइकिल में फिल्टर के केवल **एक ही बार** निष्पादित होने की गारंटी रहती है।
+3. **`shouldNotFilter()` Method**: किसी विशिष्ट एंडपॉइंट (जैसे `/public/*`) के लिए फिल्टर को बायपास करने का इन-बिल्ट और स्वच्छ तरीका प्रदान करता है।
+
+---
+
+## 6. Comprehensive Summary Table
+
+| Feature / Operation | Supported? | Recommended Practice? | Best Approach / Mechanism |
+| :--- | :---: | :---: | :--- |
+| **Add Response Header** | ✅ Yes | ✅ Yes | `response.setHeader("Key", "Value")` (Before `doFilter`) |
+| **Short-Circuit Request** | ✅ Yes | ✅ Yes | `response.setStatus(401)` & `return` without `doFilter` |
+| **Modify Response Body** | ✅ Yes | ❌ **No (Bad Practice)** | `ContentCachingResponseWrapper` + `resetBuffer()` |
+| **Modify Request Headers/Params**| ❌ No | ❌ No | Read-Only by default |
+| **Read Request Body** | ⚠️ Risky | ⚠️ **Causes Bug** | Consumes InputStream; throws `IllegalStateException` |
+| **URL Pattern Filtering** | ✅ Yes | ✅ Yes | `FilterRegistrationBean.addUrlPatterns()` |
+| **Typecast-Free Filter** | ✅ Yes | ✅ **Best Practice** | `extends OncePerRequestFilter` |
+
+---
+
+💡 **क्या आप इन Spring Boot Filter कांसेप्ट्स के आधार पर कोई अभ्यास के लिए Interactive Quiz या Flashcard deck बनाना चाहेंगे?**
+
+# 📚 Complete Masterclass Notes: Spring Boot Interceptors (`preHandle`, `postHandle` & `afterCompletion`)
+
+---
+
+## 1. Introduction: Need for Interceptors & Interceptor vs. Filter
+
+### 1.1 Why Interceptors when Filters already exist?
+In Spring Boot, **Filters** execute at the **Servlet Container Level** (between Tomcat and `DispatcherServlet`). Because Filters process raw HTTP requests before `DispatcherServlet` evaluates routing, **Filters do not know which Controller or method will handle the request**.
+
+**Interceptors** operate at the **Spring MVC Level** (after `DispatcherServlet` and before the Controller). Because `DispatcherServlet` has already resolved the handler mapping, Interceptors have **full access to the target Controller class and Method details** (`HandlerMethod`).
+
+---
+
+### 1.2 Architectural Placement & Execution Comparison
+
+```
+[ Client / Postman ]
+         |
+         v
+  [ Tomcat Server ]
+         |
+         v
+   [ Servlet Filter Chain ]  <--- Servlet Level (Raw Request / Response)
+         |
+         v
+   [ DispatcherServlet ]    <--- Spring MVC Front Controller
+         |
+         v
+  [ Interceptor Chain ]     <--- Spring MVC Level (Access to HandlerMethod)
+         |
+         v
+     [ Controller ]
+         |
+         v
+      [ Service ]
+         |
+         v
+    [ Repository ]
+```
+
+| Feature | Servlet Filter | Spring HandlerInterceptor |
+| :--- | :--- | :--- |
+| **Technology Source** | Jakarta Servlet API (`jakarta.servlet.Filter`) | Spring MVC Framework (`org.springframework.web.servlet`) |
+| **Execution Point** | Before `DispatcherServlet` (Between Tomcat & Dispatcher) | After `DispatcherServlet` (Between Dispatcher & Controller) |
+| **Handler Context** | Raw Request/Response (Does not know target Controller) | Has access to target `HandlerMethod` (Controller class & method names) |
+| **Lifecycle Methods** | `doFilter(ServletRequest, ServletResponse, FilterChain)` | `preHandle()`, `postHandle()`, `afterCompletion()` |
+| **Primary Focus** | Global infrastructure (Raw Logging, CORS, Security Filters) | Controller/Method-specific logic, Fine-grained metrics, Model/View tweaks |
+
+---
+
+## 2. Spring MVC Internal Workflow with Interceptors
+
+When an HTTP request enters `DispatcherServlet`:
+
+1. **HandlerMapping Lookup**: `DispatcherServlet` invokes `HandlerMapping` to resolve which Controller and method match the incoming URL pattern.
+2. **`preHandle()` Execution**: `DispatcherServlet` calls the `preHandle()` method of registered Interceptors in chain order.
+   * If `preHandle()` returns **`true`**: Execution proceeds to the next Interceptor or `HandlerAdapter`.
+   * If `preHandle()` returns **`false`**: Execution is **short-circuited** immediately, stopping controller execution.
+3. **Controller Execution**: `HandlerAdapter` invokes the target Controller method.
+4. **`postHandle()` Execution**: Executed after the Controller method finishes, before the response/view is fully rendered.
+5. **View Rendering / JSON Response Serialization**: View is rendered (in MVC) or JSON is written via Jackson (in `@RestController`).
+6. **`afterCompletion()` Execution**: Executed after the complete request processing and rendering cycle finishes (used for resource cleanup, exceptions, and execution metrics).
+
+---
+
+## 3. The `HandlerInterceptor` Interface & Lifecycle Methods
+
+To create an Interceptor, implement `org.springframework.web.servlet.HandlerInterceptor`. All three lifecycle methods are Java `default` methods (overriding any method is optional):
+
+```java
+public interface HandlerInterceptor {
+
+    default boolean preHandle(HttpServletRequest request, 
+                               HttpServletResponse response, 
+                               Object handler) throws Exception {
+        return true;
+    }
+
+    default void postHandle(HttpServletRequest request, 
+                            HttpServletResponse response, 
+                            Object handler, 
+                            @Nullable ModelAndView modelAndView) throws Exception {}
+
+    default void afterCompletion(HttpServletRequest request, 
+                                 HttpServletResponse response, 
+                                 Object handler, 
+                                 @Nullable Exception ex) throws Exception {}
+}
+```
+
+---
+
+### 3.1 Method Breakdowns
+
+#### 1. `preHandle(request, response, handler)`
+* **Execution Time**: Called **before** the target Controller method is executed.
+* **Return Type**: `boolean`.
+  * `return true;` \\(\rightarrow\\) Continues execution to the next interceptor or controller.
+  * `return false;` \\(\rightarrow\\) Halts processing; request short-circuits immediately.
+* **Use Cases**: Authentication/Authorization checks, extracting request parameters/URIs, pre-execution timing.
+
+#### 2. `postHandle(request, response, handler, modelAndView)`
+* **Execution Time**: Called **after** Controller execution, but **before** the view is rendered.
+* **`ModelAndView` Parameter**:
+  * In traditional Spring MVC (JSP/HTML views), contains view names and model attributes, allowing dynamic addition/modification of view data.
+  * In REST APIs (`@RestController`), `modelAndView` is **`null`**.
+* **Use Cases**: Modifying view model attributes before rendering in traditional web applications.
+
+#### 3. `afterCompletion(request, response, handler, ex)`
+* **Execution Time**: Called **after the complete request lifecycle** is finished and response is generated/rendered.
+* **`Exception ex` Parameter**: Captures any unhandled exception thrown during controller/service execution (if no global exception handler caught it).
+* **Use Cases**: Calculating total API execution turnaround time, logging response status codes, cleaning up thread-local variables.
+
+---
+
+## 4. Extracting Controller & Method Details (`HandlerMethod`)
+
+The `Object handler` parameter represents the execution target chosen by Spring MVC. For REST APIs and controllers, `handler` can be safely cast to `HandlerMethod`:
+
+```java
+if (handler instanceof HandlerMethod handlerMethod) {
+    // 1. Get Target Controller Class Name
+    String controllerName = handlerMethod.getBeanType().getName();
+
+    // 2. Get Target Controller Method Name
+    String methodName = handlerMethod.getMethod().getName();
+
+    System.out.println("Executing Controller: " + controllerName);
+    System.out.println("Executing Method: " + methodName);
+}
+```
+
+---
+
+## 5. Registering Interceptors (`WebMvcConfigurer`)
+
+Creating an Interceptor with `@Component` is not enough; it must be registered inside a Configuration class implementing **`WebMvcConfigurer`**:
+
+```java
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    private final LoggingInterceptor loggingInterceptor;
+    private final AuthenticationInterceptor authInterceptor;
+
+    // Constructor Injection
+    public WebConfig(LoggingInterceptor loggingInterceptor, AuthenticationInterceptor authInterceptor) {
+        this.loggingInterceptor = loggingInterceptor;
+        this.authInterceptor = authInterceptor;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+
+        // 1. Register Authentication Interceptor
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/api/**")                      // Include paths
+                .excludePathPatterns("/api/auth/login", "/api/public/**") // Exclude paths
+                .order(1);                                       // Execution order
+
+        // 2. Register Logging Interceptor
+        registry.addInterceptor(loggingInterceptor)
+                .addPathPatterns("/api/**")
+                .order(2);
+    }
+}
+```
+
+### Path Pattern Syntax in Spring MVC
+* **`exact`** (e.g., `/api/students`): Matches only the exact URI path.
+* **`/*`** (e.g., `/api/*`): Matches a single path level after `/api/`.
+* **`/**`** (e.g., `/api/**`): Matches all nested sub-paths under `/api/`.
+
+---
+
+## 6. Complete Implementation Examples
+
+### 6.1 Logging & Metrics Interceptor
+
+```java
+@Component
+public class LoggingInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // Capture start time
+        request.setAttribute("startTime", System.currentTimeMillis());
+
+        System.out.println("--- Incoming Request ---");
+        System.out.println("HTTP Method: " + request.getMethod());
+        System.out.println("Request URI: " + request.getRequestURI());
+        System.out.println("Query Parameters: " + request.getQueryString());
+        System.out.println("Client IP: " + request.getRemoteAddr());
+
+        // Extract Controller and Method Details
+        if (handler instanceof HandlerMethod handlerMethod) {
+            System.out.println("Controller: " + handlerMethod.getBeanType().getSimpleName());
+            System.out.println("Method: " + handlerMethod.getMethod().getName());
+        }
+
+        return true; // Continue execution chain
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        long startTime = (Long) request.getAttribute("startTime");
+        long duration = System.currentTimeMillis() - startTime;
+
+        System.out.println("Response Status: " + response.getStatus());
+        System.out.println("Total Execution Time: " + duration + " ms");
+
+        if (ex != null) {
+            System.out.println("Exception Occurred: " + ex.getMessage());
+        }
+    }
+}
+```
+
+---
+
+### 6.2 Role-Based Authorization Interceptor (Short-Circuiting)
+
+```java
+@Component
+public class AuthorizationInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String userRole = request.getHeader("X-User-Role");
+
+        // Enforce Admin role for protected operations
+        if (userRole == null || !"ADMIN".equalsIgnoreCase(userRole)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN); // HTTP 403 Forbidden
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Forbidden: You are not authorized to perform this action\"}");
+            
+            return false; // Short-circuit: Stop execution
+        }
+
+        return true; // Authorized -> Continue
+    }
+}
+```
+
+---
+
+## 7. Best Practices & Key Architectural Guidelines
+
+1. **Use Filters for Global Infrastructure**: Use Servlet Filters for low-level tasks like raw body wrapping, CORS, global request/response logging, and security headers.
+2. **Use Interceptors for Controller-Aware Operations**: Use Interceptors when logic depends on specific Controller methods, endpoint metadata, or fine-grained execution metrics.
+3. **Prefer Spring Security for Production Auth**: Manual authentication/authorization inside Interceptors or Filters is suitable for basic projects, but enterprise production applications should utilize **Spring Security**.
+4. **Short-Circuiting via `return false`**: Returning `false` in `preHandle()` halts the chain immediately; ensure appropriate HTTP status codes (`401 Unauthorized` or `403 Forbidden`) and response bodies are written before returning.
+
+---
+
+💡 **Would you like me to generate an interactive Quiz or Flashcard deck based on these Spring Boot Interceptor concepts?**
+
+# 📚 Complete Video Notes: Spring AOP | Cross-Cutting Concerns & Proxies (Video #22)
+
+---
+
+## 1. Context & Comparison: Filters vs. Interceptors vs. AOP
+
+In Spring applications, wrapping execution behavior occurs across different architectural layers:
+
+```
+[ Incoming Request ] ──► [ Filter ] ──► [ DispatcherServlet ] ──► [ Interceptor ] ──► [ Controller ] ──► [ AOP / Service Layer ]
+```
+
+* **Filters**: Operate at the Servlet Container level before `DispatcherServlet`. They wrap **raw incoming HTTP requests**.
+* **Interceptors**: Operate at the Spring MVC level between `DispatcherServlet` and Controllers. They wrap **Controller classes**.
+* **Aspect-Oriented Programming (AOP)**: Wraps **ANY class or method** across the entire Spring Application (Services, Repositories, Helpers, Utilities) before, after, or around execution.
+
+---
+
+## 2. The Core Problem: Business Logic vs. Infrastructure Logic
+
+In real-world production applications, a service method (e.g., `createStudent`) requires two distinct types of logic:
+
+```
+                                  Service Method Logic
+                                           │
+         ┌─────────────────────────────────┴─────────────────────────────────┐
+         ▼                                                                   ▼
+ Business Logic (Domain)                                  Infrastructure / Supporting Logic
+ ───────────────────────                                  ─────────────────────────────────
+ - Core purpose of the method                             - Logging (Method name, parameters, caller)
+ - e.g., studentRepository.save(student)                  - Execution Time / Performance Metrics
+ - Changes depending on Domain (Student, Payment, Order)   - Role & Permission Checks
+                                                          - Caching & Auditing
+                                                          - Reused identically across all domains
+```
+
+### Why Mixing Both Logics in Service Methods is Bad:
+* **Overly Bulky & Complex Methods**: A 1-line business logic method (`repository.save()`) gets cluttered with 20+ lines of timer, logging, permission, and caching code.
+* **Loss of Readability**: Developers reading the method struggle to spot the actual business logic amidst the surrounding infrastructure boilerplate.
+
+---
+
+## 3. Vertical Concerns vs. Horizontal Concerns
+
+In Low-Level System Design (LLD), application concerns are divided into two orientations:
+
+```
+    Vertical Concerns (Business Logic)                Horizontal / Cross-Cutting Concerns (Infra)
+ ────────────────────────────────────────          ──────────────────────────────────────────────
+   StudentService   PaymentService   OrderService    Logging ───────► [ Student ] [ Payment ] [ Order ]
+   ┌────────────┐   ┌────────────┐   ┌──────────┐    Security ──────► [ Student ] [ Payment ] [ Order ]
+   │ create()   │   │ pay()      │   │ place()  │    Metrics ───────► [ Student ] [ Payment ] [ Order ]
+   │ update()   │   │ refund()   │   │ cancel() │
+   └────────────┘   └────────────┘   └──────────┘    Spans HORIZONTALLY across all vertical classes!
+   Encapsulated VERTICALLY within domain class.
+```
+
+* **Vertical Concerns (Business Logic)**: Area of interest specific to a domain (e.g., Student Management, Payment Processing, Order Placement). They reside vertically inside their respective service classes.
+* **Horizontal / Cross-Cutting Concerns (Infrastructure Logic)**: Area of interest shared across multiple domains (e.g., Logging, Security, Execution Time Measurement, Auditing). They span horizontally across almost all application classes.
+
+---
+
+## 4. Problems Caused by Cross-Cutting Concerns
+
+Cross-cutting concerns introduce two major architectural problems:
+
+```
+                 Cross-Cutting Concerns Architectural Failures
+                                       │
+         ┌─────────────────────────────┴─────────────────────────────┐
+         ▼                                                           ▼
+Code Scattering                                             Code Tangling
+───────────────                                             ─────────────
+Infrastructure code (logging, timing) is repeated &          Multiple unrelated concerns (auth, timing, logging, DB)
+scattered across hundreds of classes.              are entangled inside a single method.
+```
+
+---
+
+## 5. Evolution of Traditional Solutions & Why They Fail
+
+### Approach 1: Helper / Utility Classes (`LoggingServiceUtil`)
+Creating a static helper class with `logStart()` and `logEnd()` methods:
+
+```java
+// Helper Utility Approach
+public void createStudent(Student student) {
+    LoggingServiceUtil.logStart("StudentServiceIMPL", "createStudent"); // Infra
+    
+    studentRepository.save(student); // Business Logic
+    
+    LoggingServiceUtil.logEnd("StudentServiceIMPL", "createStudent"); // Infra
+}
+```
+* **Why it fails**: The service method remains bulky, infra calls still clutter the method, and developers can accidentally forget to call helper functions.
+
+---
+
+### Approach 2: Inheritance
+Extending a parent `BaseLoggingService` class:
+* **Why it fails**: Subclasses must still explicitly invoke `super.logStart()`, which keeps the code tightly coupled and cluttered.
+
+---
+
+### Approach 3: Decorator Design Pattern (Wrapper Classes)
+The Decorator pattern wraps the concrete business object inside a wrapper class that implements the same interface (**Is-A**) and holds a reference to the target object (**Has-A / Composition**):
+
+```
+   [ Controller ] ──► Depends on ──► [ StudentService (Interface) ]
+                                                ▲
+                                                │ Implemented by
+                       ┌────────────────────────┴────────────────────────┐
+                       │                                                 │
+          [ LoggingDecorator ] (Wrapper)                    [ StudentServiceIMPL ] (Core)
+           - Executes pre-logging                            - Contains purely business logic
+           - Delegates call to StudentServiceIMPL              (studentRepository.save())
+           - Executes post-logging
+```
+
+#### Code Implementation of Decorator Pattern:
+
+1. **Service Interface**:
+```java
+public interface StudentService {
+    void createStudent(Student student);
+}
+```
+
+2. **Clean Business Implementation**:
+```java
+@Service
+public class StudentServiceIMPL implements StudentService {
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Override
+    public void createStudent(Student student) {
+        studentRepository.save(student); // Pure business logic!
+    }
+}
+```
+
+3. **Decorator Wrapper Class**:
+```java
+@Component
+@Primary // Spring IoC injects this Decorator into Controller instead of IMPL
+public class LoggingDecorator implements StudentService {
+
+    private final StudentServiceIMPL studentServiceIMPL;
+
+    public LoggingDecorator(StudentServiceIMPL studentServiceIMPL) {
+        this.studentServiceIMPL = studentServiceIMPL;
+    }
+
+    @Override
+    public void createStudent(Student student) {
+        // Pre-Execution Infra Logic
+        LoggingServiceUtil.logStart("StudentServiceIMPL", "createStudent");
+
+        // Delegate execution to actual business object
+        studentServiceIMPL.createStudent(student);
+
+        // Post-Execution Infra Logic
+        LoggingServiceUtil.logEnd("StudentServiceIMPL", "createStudent");
+    }
+}
+```
+
+#### Why Manual Decorators Fail in Large Systems:
+1. Every new service class requires manually writing multiple wrapper/decorator classes.
+2. Chaining multiple decorators (`ExecutionTimeDecorator` \\(\rightarrow\\) `LoggingDecorator` \\(\rightarrow\\) `StudentServiceIMPL`) requires complex manual wiring and `@Primary` management.
+3. Extremely error-prone and leads to developer mistakes.
+
+---
+
+## 6. The Ultimate Solution: Spring AOP (Aspect-Oriented Programming)
+
+Spring AOP automates the Decorator/Wrapper pattern dynamically behind the scenes. It automatically generates dynamic proxy wrappers around target beans without requiring developers to write boilerplate wrapper classes.
+
+```
+               Object-Oriented Programming (OOP) vs. Aspect-Oriented Programming (AOP)
+ ─────────────────────────────────────────────────────────────────────────────────────────────
+  OOP Focuses On: Business Domain Entities (Student, Payment, Order) & Business Logic.
+  AOP Focuses On: Cross-Cutting Infrastructure Concerns (Logging, Security, Timing).
+```
+
+---
+
+## 7. The Three Fundamental Questions Answered by AOP
+
+Spring AOP configures cross-cutting logic by answering three core questions:
+
+```
+                                  Three Questions of AOP
+                                            │
+         ┌──────────────────────────────────┼──────────────────────────────────┐
+         ▼                                  ▼                                  ▼
+     1. WHAT?                            2. WHERE?                          3. WHEN?
+  (The Action)                        (The Target)                       (The Timing)
+  ────────────                        ────────────                       ────────────
+  What logic should execute?          Where should it apply?             When should it execute?
+  e.g., Logging, Timing, Security     e.g., All methods in all           e.g., Before method start,
+ .                               Service classes.              After method return, Around
+                                                                        .
+```
+
+---
+
+💡 **Would you like me to build an interactive Quiz or a Flashcard deck covering these Spring AOP concepts?**
+
+# 📚 Complete Video Notes: Spring AOP Advice Types Explained (@Before, @After, @Around)
+
+---
+
+## 1. Introduction & Conceptual Foundations (Decorator vs. Proxy Pattern)
+
+### 1.1 Recapping AOP & Cross-Cutting Concerns
+* **Core Objective**: Aspect-Oriented Programming (AOP) का मुख्य उद्देश्य बिजनेस लॉजिक (Domain Logic) को इंफ्रास्ट्रक्चरल क्रॉस-कटिंग कंसर्न्स (Logging, Security, Metrics) से पूरी तरह अलग (Decouple) करना है.
+* **Conceptual Execution Model**: AOP मूलतः एक **Decorator / Proxy Pattern** की तरह काम करता है जहाँ टारगेट ऑब्जेक्ट (सब्जेक्ट/सर्विस) के ऊपर एक या अनेक डेकोरेटर्स/प्रॉक्सीज़ की लेयर्स लगाई जाती हैं.
+
+```
+Client (Controller) ──► Proxy / Decorator 2 ──► Proxy / Decorator 1 ──► Target Object (StudentService)
+```
+
+---
+
+### 1.2 Interview Question: Does Spring AOP use Decorator or Proxy Design Pattern?
+एक बहुत ही कॉमन इंटरव्यू क्वेश्चन: *क्या Spring AOP अंदर से Decorator Pattern का उपयोग करता है या Proxy Pattern का?*
+
+* **UML & Class Structure**: UML डायग्राम और क्लास स्ट्रक्चर के स्तर पर दोनों पैटर्न लगभग 100% सेम होते हैं.
+* **Difference in Intent (इरादा)**:
+  * **Decorator Pattern**: इसका मुख्य उद्देश्य किसी क्लास/सर्विस में नए फीचर्स जोड़ना और उसकी फंक्शनैलिटी को बढ़ाना (Enhance) होता है (e.g., ऑथेंटिकेशन, लॉगिंग फीचर जोड़ना).
+  * **Proxy Pattern**: इसका मुख्य उद्देश्य किसी क्लास के एक्सेस और लाइफसाइकिल को कंट्रोल (Control) करना होता है.
+* **Conclusion**: स्प्रिंग फ्रेमवर्क आंतरिक रूप से इन्हें **Proxy** कहता है, लेकिन चूँकि हम अपनी सर्विस में लॉगिंग व सिक्योरिटी फीचर्स जोड़कर उसे डेकोरेट कर रहे हैं, इसलिए इसे **Decorator** या **Proxy** दोनों कहना सही है.
+
+---
+
+## 2. Maven Dependencies & Project Setup
+
+### 2.1 Adding Dependency in `pom.xml`
+Spring Boot 3+ एप्लिकेशन्स में AOP सपोर्ट के लिए **AspectJ** डिपेंडेंसी का उपयोग किया जाता है:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-aspectj</artifactId>
+</dependency>
+```
+*(नोट: पहले इसका नाम `spring-boot-starter-aop` था जो अब बदलकर `spring-boot-starter-aspectj` हो गया है। इसका वर्जन पैरेंट POM द्वारा ऑटो-मैनेज होता है).*
+
+---
+
+## 3. Core Terminology Review
+
+1. **Target Object**: वह वास्तविक बिजनेस सर्विस जिसके मेथड को इंटरसेप्ट करना है (e.g., `StudentService`).
+2. **Proxy**: स्प्रिंग द्वारा डायनेमिकली बनाया गया ऑब्जेक्ट जो टारगेट को रैप (Wrap) करता है.
+3. **Aspect**: क्रॉस-कटिंग लॉजिक रखने वाली क्लास जिसे `@Aspect` और `@Component` से एनोटेट किया जाता है.
+4. **Pointcut**: वह एक्सप्रेशन जो तय करती है कि **कहाँ (Where)** एडवाइस लागू होगी (e.g., `execution(* com.example.service.*.*(..))`).
+5. **Advice**: वह एक्शन जो तय करता है कि **कब (When)** और **क्या (What)** लॉजिक चलाना है (`@Before`, `@After`, आदि).
+6. **JoinPoint**: टारगेट मेथड का निष्पादन बिंदु, जिसके पास टारगेट मेथड के मेटा-डेटा और आर्गुमेंट्स की जानकारी होती है.
+
+---
+
+## 4. The 5 Advice Types: Understanding via Try-Catch-Finally Analogy
+
+Spring AOP में **5 प्रकार की एडवाइसेस** होती हैं जो बताती हैं कि इंटरसेप्शन कब निष्पादित होगा. इन्हें समझने के लिए जावा के standard **Try-Catch-Finally Block** का उदाहरण सबसे बेहतरीन है:
+
+```java
+try {
+    // 1. @Before advice logic executes HERE (Before calling target method)
+    
+    Object result = targetMethod.proceed(); // Target Method Execution
+    
+    // 2. @AfterReturning advice logic executes HERE (Only on Successful Return)
+    return result;
+    
+} catch (Exception ex) {
+    // 3. @AfterThrowing advice logic executes HERE (Only when Exception occurs)
+    throw ex;
+    
+} finally {
+    // 4. @After advice logic executes HERE (ALWAYS executes like finally block)
+}
+
+// 5. @Around advice wraps the ENTIRE try-catch-finally execution block!
+```
+
+---
+
+## 5. Detailed Breakdown of Each Advice Type
+
+### 5.1 `@Before` Advice
+
+* **Execution Time**: टारगेट मेथड के निष्पादन से ठीक पहले कॉल होता है.
+* **Use Cases**: स्टार्टिंग लॉग्स प्रिंट करना, प्री-कंडीशन चेक्स, बेसिक इनपुट वैलिडेशन या ऑथेंटिकेशन चेक्स.
+* **Can `@Before` stop Target Method Execution?**
+  * **Directly**: नहीं! `@Before` मेथड से `return` लिखने के बाद भी टारगेट मेथड निष्पादित होता है.
+  * **Indirectly**: हाँ! यदि `@Before` एडवाइस मेथड के अंदर से ही कोई एक्सेप्शन थ्रो (`throw new RuntimeException()`) कर दी जाए, तो टारगेट मेथड निष्पादित होने से रुक जाता है.
+* **Reading Arguments (`JoinPoint`)**: `joinPoint.getArgs()` से टारगेट मेथड के पास जा रहे आर्गुमेंट्स पढ़े जा सकते हैं, लेकिन मॉडिफाई नहीं किए जा सकते.
+
+```java
+@Aspect
+@Component
+public class LoggingAspect {
+
+    @Before("execution(* in.codearmy.service.StudentService.createStudent(..))")
+    public void logBeforeMethod(JoinPoint joinPoint) {
+        System.out.println("A student is going to be saved...");
+        Object[] args = joinPoint.getArgs(); // Read-only access to arguments
+    }
+}
+```
+
+---
+
+### 5.2 `@AfterReturning` Advice
+
+* **Execution Time**: केवल तभी कॉल होता है जब टारगेट मेथड सफलतापूर्वक निष्पादित होकर वैल्यू रिटर्न कर देता है (बिना किसी एक्सेप्शन के).
+* **Capturing Return Value**:
+  `@AfterReturning(pointcut = "...", returning = "result")` का उपयोग करके टारगेट मेथड का रिटर्न वैल्यू प्राप्त किया जाता है.
+
+```java
+@Aspect
+@Component
+public class LoggingAspect {
+
+    @AfterReturning(
+        pointcut = "execution(* in.codearmy.service.StudentService.*(..))",
+        returning = "result"
+    )
+    public void logAfterReturning(JoinPoint joinPoint, Object result) {
+        System.out.println("Target Method Returned: " + result);
+    }
+}
+```
+
+* **Modifying Return Values**:
+  * **Primitives / Immutable Strings**: `@AfterReturning` में मेथड का रिटर्न टाइप बदल देने या वैल्यू चेंज कर देने पर भी क्लाइंट (कंट्रोलर) को ओरिजिनल वैल्यू ही मिलती है.
+  * **Mutable Objects**: यदि रिटर्न वैल्यू एक ऑब्जेक्ट है (जैसे `StudentDTO`), तो उसके सेटर्स (`result.setName("Rohit")`) कॉल करके फील्ड्स चेंज हो सकती हैं, लेकिन यह **Bad Practice** है.
+
+---
+
+### 5.3 `@AfterThrowing` Advice
+
+* **Execution Time**: केवल तभी कॉल होता है जब टारगेट मेथड में कोई एक्सेप्शन थ्रो होती है.
+* **Capturing Exception**:
+  `@AfterThrowing(pointcut = "...", throwing = "ex")` के ज़रिए थ्रो हुई एक्सेप्शन को कलेक्ट किया जा सकता है.
+
+```java
+@Aspect
+@Component
+public class LoggingAspect {
+
+    @AfterThrowing(
+        pointcut = "execution(* in.codearmy.service.StudentService.*(..))",
+        throwing = "ex"
+    )
+    public void logAfterThrowing(Exception ex) {
+        System.out.println("Exception Occurred: " + ex.getMessage());
+        System.out.println("Exception Type: " + ex.getClass().getName());
+    }
+}
+```
+
+* **Important Restriction**: `@AfterThrowing` एक्सेप्शन को **कंज्यूम या कैच नहीं कर सकता**। एक्सेप्शन इंटरसेप्ट होने के बाद आगे कंट्रोलर/क्लाइंट के पास प्रोपेगेट होती है. इसका मुख्य उपयोग केवल एक्सेप्शन लॉगिंग, एरर मॉनिटरिंग और ऑडिटिंग के लिए होता है.
+
+---
+
+### 5.4 `@After` Advice
+
+* **Execution Time**: टारगेट मेथड के पूरा होने के तुरंत बाद कॉल होता है—चाहे मेथड सफलतापूर्वक रिटर्न हुआ हो या उसने एक्सेप्शन थ्रो की हो (जावा के `finally` ब्लॉक की तरह).
+* **Use Cases**: रिसोर्स क्लीनअप, लॉक रिलीज़ करना, या कनेक्शन क्लोज करना.
+
+```java
+@Aspect
+@Component
+public class LoggingAspect {
+
+    @After("execution(* in.codearmy.service.StudentService.*(..))")
+    public void logAfter() {
+        System.out.println("Method Execution Completed (Success or Exception).");
+    }
+}
+```
+
+---
+
+### 5.5 `@Around` Advice (The Most Powerful Advice)
+
+`@Around` सबसे शक्तिशाली एडवाइस है जो पूरे टारगेट मेथड को घेर (Incapuslate) लेती है.
+
+* **`ProceedingJoinPoint`**: यह `JoinPoint` की सब-क्लास है। इसके पास `joinPoint.proceed()` मेथड होता है जिससे हम तय करते हैं कि टारगेट मेथड कब और कैसे चलेगा.
+* **Unmatched Capabilities of `@Around`**:
+  1. **Control Execution Timing**: टारगेट मेथड के पहले और बाद में दोनों जगह लॉजिक चला सकता है.
+  2. **Modify Arguments**: `joinPoint.proceed(modifiedArgs)` का उपयोग करके टारगेट मेथड में जाने वाले पैरामीटर्स को बदल सकता है.
+  3. **Modify / Replace Return Values**: टारगेट द्वारा दिए गए रिटर्न वैल्यू को बदलकर क्लाइंट को नया रिस्पॉन्स लौटा सकता है.
+  4. **Consume Exceptions**: `try-catch` ब्लॉक लगाकर टारगेट की एक्सेप्शन को वहीं रोक (Consume/Suppress) कर सकता है.
+  5. **Multiple / Conditional Executions**: टारगेट मेथड को 0 बार, 1 बार या लूप में मल्टीपल बार कॉल कर सकता है.
+
+```java
+@Aspect
+@Component
+public class PerformanceAspect {
+
+    @Around("execution(* in.codearmy.service.StudentService.*(..))")
+    public Object measureExecutionTime(ProceedingJoinPoint pjp) throws Throwable {
+        long start = System.currentTimeMillis();
+        System.out.println("Starting method: " + pjp.getSignature().getName());
+
+        try {
+            // 1. Execute Target Method
+            Object result = pjp.proceed(); 
+            
+            long executionTime = System.currentTimeMillis() - start;
+            System.out.println("Execution Time: " + executionTime + " ms");
+            
+            // 2. Return result (or modify it)
+            return result; 
+
+        } catch (Throwable ex) {
+            System.out.println("Execution Failed: " + ex.getMessage());
+            throw ex; // Re-throw or consume exception
+        } finally {
+            System.out.println("Execution Completed.");
+        }
+    }
+}
+```
+
+---
+
+## 6. Summary Comparison Matrix: Advice Types
+
+| Advice Type | Triggers On Success? | Triggers On Exception? | Can Modify Arguments? | Can Modify Return Value? | Can Suppress Exceptions? |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **`@Before`** | ✅ Yes | N/A | ❌ No | ❌ No | ❌ No (Unless throws ex) |
+| **`@AfterReturning`** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No |
+| **`@AfterThrowing`** | ❌ No | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **`@After`** | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **`@Around`** | ✅ Yes | ✅ Yes | ✅ **Yes** (`proceed(args)`) | ✅ **Yes** | ✅ **Yes** |
+
+---
+
+💡 **क्या आप इन AOP Advice Types पर आधारित किसी अभ्यास के लिए Interactive Quiz या Flashcard deck बनाना चाहेंगे?**
+
+# 📚 Masterclass Notes: Spring AOP Pointcuts & Types of Proxies
+
+In Aspect-Oriented Programming (AOP), while **Advices** define **WHEN** and **WHAT** logic executes, **Pointcuts** answer the fundamental question of **WHERE** that cross-cutting logic should be applied.
+
+---
+
+## 1. Structure & Anatomy of a Pointcut Expression
+
+A pointcut expression determines which methods, classes, or packages are intercepted by an Aspect.
+
+```
+execution(access_modifier? return_type package.class.method(parameters) throws_exception?)
+```
+
+```
+                   Anatomy of an execution() Pointcut
+ ┌───────────────┐ ┌──────────┐ ┌─────────────┐ ┌─────────────────────────┐ ┌──────────┐
+ │ Designator    │ │ Return   │ │ Package &   │ │ Method Name             │ │ Parameter│
+ │               │ │ Type     │ │ Class Path  │ │                         │ │ List     │
+ └───────┬───────┘ └────┬─────┘ └──────┬──────┘ └────────────┬────────────┘ └────┬─────┘
+         │              │              │                     │                   │
+     execution(       String    com.example.service.StudentService.getStudent(    String   ) )
+```
+
+### 1.1 Mandatory vs. Optional Components
+* **Mandatory Fields**: Return Type, Package/Class/Method Path, and Parameter List.
+* **Optional Fields**: Access Modifier (e.g., `public`, `protected`) and Thrown Exception list.
+
+### 1.2 Exact Path Matching Example
+```java
+// Exact method targeting without wildcards
+@Before("execution(public String in.codearmy.service.StudentService.getStudent(String))")
+public void logBefore(JoinPoint joinPoint) {
+    System.out.println("Method intercepted");
+}
+```
+* **Limitation of Exact Matching**: Writing fully-qualified exact paths for every single method breaks AOP modularity and requires creating repetitive aspect declarations for every endpoint.
+
+---
+
+## 2. Wildcard Characters in AOP (`*` and `..`)
+
+To avoid hardcoding exact class and method names, Spring AOP provides two primary wildcard characters:
+
+```
+                                  AOP Wildcard Characters
+                                             │
+         ┌───────────────────────────────────┴───────────────────────────────────┐
+         ▼                                                                       ▼
+    Star Wildcard (*)                                                       Dot-Dot Wildcard (..)
+  ─────────────────────                                                   ─────────────────────────
+  - Matches ANY SINGLE element                                            - Matches ZERO OR MORE elements
+  - Single return type, class, method, or parameter                       - Sub-packages or variable-length parameter lists
+```
+
+### 2.1 Star Wildcard (`*`)
+* **Return Type**: `execution(* com.service.StudentService.getStudent(..))` \\(\rightarrow\\) Matches `getStudent` regardless of return type (`String`, `Integer`, `void`, or custom Object).
+* **Method Names**: `execution(* com.service.StudentService.get*(..))` \\(\rightarrow\\) Matches any method name starting with `get`.
+* **Class Names**: `execution(* com.service.*.*(..))` \\(\rightarrow\\) Matches any class directly inside the `com.service` package.
+
+### 2.2 Dot-Dot Wildcard (`..`)
+* **Parameters**: `execution(* com.service.StudentService.*(..))` \\(\rightarrow\\) Matches any method in `StudentService` taking **0, 1, or multiple parameters** of any type.
+* **Sub-Packages**: `execution(* com.service..*.*(..))` \\(\rightarrow\\) Recursively matches any class across `com.service` and **all its sub-packages**.
+
+---
+
+## 3. Danger of Overly Broad Pointcuts
+
+Defining an overly broad pointcut, such as `execution(* *(..))`, instructs Spring AOP to proxy **every single method across the entire JVM and framework**.
+
+```java
+// BAD: Causes BeanCreationException on boot!
+@Before("execution(* *(..))") 
+```
+
+* **Why it Fails**: Spring AOP attempts to create CGLIB dynamic proxies for internal Spring Boot auto-configuration beans (e.g., `TomcatServletWebServerFactory`), which cannot be proxied, resulting in a fatal `BeanCreationException` during startup.
+* **Best Practice**: Always restrict pointcuts to your application's base package:
+  ```java
+  // GOOD: Restricted to application domain
+  @Before("execution(* in.codearmy.aopdemo..*.*(..))")
+  ```
+
+---
+
+## 4. Core AOP Designators
+
+Designators define the mechanism used to identify target join points:
+
+| Designator | Target Level | Description | Example |
+| :--- | :--- | :--- | :--- |
+| **`execution()`** | Method Level | Matches method signatures directly. | `execution(* com.service..*.*(..))` |
+| **`within()`** | Class / Package Level | Matches all methods contained within specified classes or packages. | `within(com.service.StudentService)` |
+| **`@annotation()`** | Method Level | Matches methods annotated with a specific annotation. | `@annotation(jdk.jfr.Timestamp)` |
+| **`bean()`** | Bean Name Level | Matches all methods within a specific Spring Bean by its IoC bean name. | `bean(studentService)` |
+
+### 4.1 Custom Annotation Interception (`@annotation`)
+Custom annotations allow declarative aspect execution without coupling pointcut expressions to package structures:
+
+```java
+// 1. Apply custom annotation on service method
+@Service
+public class StudentService {
+    @TrackTime // Custom Annotation
+    public Student createStudent(Student student) { ... }
+}
+
+// 2. Aspect targets any method with @TrackTime
+@Around("@annotation(in.codearmy.annotation.TrackTime)")
+public Object measureTime(ProceedingJoinPoint pjp) throws Throwable {
+    long start = System.currentTimeMillis();
+    Object result = pjp.proceed();
+    System.out.println("Time taken: " + (System.currentTimeMillis() - start) + " ms");
+    return result;
+}
+```
+
+---
+
+## 5. Centralized Named Pointcuts (`ApplicationPointcuts`)
+
+In enterprise applications, hardcoding pointcut strings inside `@Before` or `@Around` annotations causes code duplication. Industry standards centralize pointcuts in a dedicated configuration class using the **`@Pointcut`** annotation with empty method stubs.
+
+```java
+package in.codearmy.aspect;
+
+import org.aspectj.lang.annotation.Pointcut;
+
+public class ApplicationPointcuts {
+
+    // 1. Targets all methods in Controller layer
+    @Pointcut("within(in.codearmy.controller..*)")
+    public void controllerLayer() {}
+
+    // 2. Targets all methods in Service layer
+    @Pointcut("within(in.codearmy.service..*)")
+    public void serviceLayer() {}
+
+    // 3. Targets all public methods
+    @Pointcut("execution(public * *(..))")
+    public void publicMethods() {}
+
+    // 4. Combining pointcuts using Logical Operators (AND)
+    @Pointcut("serviceLayer() && publicMethods()")
+    public void publicServiceMethods() {}
+}
+```
+
+### Reusing Centralized Pointcuts in Aspects:
+```java
+@Aspect
+@Component
+public class LoggingAspect {
+
+    // Referencing centralized pointcut by fully-qualified method name
+    @Before("in.codearmy.aspect.ApplicationPointcuts.publicServiceMethods()")
+    public void logPublicService(JoinPoint joinPoint) {
+        System.out.println("Executing public service method: " + joinPoint.getSignature().getName());
+    }
+}
+```
+
+---
+
+## 6. Advanced Designators (`@within`, `@target`, `args`, `@args`)
+
+```
+                         Specialized AOP Designators
+  ┌──────────────────────────────┬──────────────────────────────┐
+  │ Class-Level Annotation       │ Argument-Level Matching      │
+  ├──────────────────────────────┼──────────────────────────────┤
+  │ - @within(AnnotationClass)   │ - args(ParameterClass)       │
+  │ - @target(AnnotationClass)   │ - @args(AnnotationClass)     │
+  └──────────────────────────────┴──────────────────────────────┘
+```
+
+### 6.1 `@within` vs. `@target` (Inheritance Behavior)
+Both designators match classes annotated with a specific annotation (e.g., `@within(org.springframework.stereotype.Service)`), but differ when class inheritance is involved:
+
+* **`@within`**: Checks where the target method is **declared** at compile time. If `StudentService` extends `BaseService`, and `BaseService` defines `save()` without `@Service`, `@within` **will NOT intercept** calls to `save()`.
+* **`@target`**: Checks the **runtime object type**. Even if `save()` is declared in `BaseService`, if the instantiated runtime subclass (`StudentService`) has `@Service`, `@target` **WILL intercept** the call.
+
+### 6.2 `args()` vs. `@args()`
+* **`args(in.codearmy.dto.Student)`**: Matches any method accepting an argument of type `Student`. Must be combined with `within()` to prevent matching internal Spring classes.
+* **`@args(in.codearmy.annotation.ValidatedDto)`**: Matches any method accepting an object whose **class definition** is annotated with `@ValidatedDto`.
+
+---
+
+## 7. Proxy Architecture: CGLIB vs. JDK Dynamic Proxy
+
+Spring AOP relies on **Dynamic Proxies** to intercept method calls.
+
+```
+                 Spring AOP Execution Flow
+  [ Client / Controller ] ──► [ Proxy Object ] ──► [ Target Business Object ]
+                                (Aspect Logic)        (Actual Logic)
+```
+
+```
+                     Types of Dynamic Proxies in Spring AOP
+                                       │
+         ┌─────────────────────────────┴─────────────────────────────┐
+         ▼                                                           ▼
+  CGLIB Dynamic Proxy                                        JDK Dynamic Proxy
+  ───────────────────                                        ─────────────────
+  - Default in Spring Boot                                   - Used when interfaces are present & configured
+  - Subclasses target class (Inheritance)                     - Implements target interface
+  - Proxy IS-A Target Class                                  - Proxy IS-A Interface (NOT Target Class)
+```
+
+### 7.1 CGLIB Proxy Mechanics (Default)
+CGLIB generates a proxy by **subclassing** the concrete business class (`class Proxy extends StudentService`).
+
+```
+                 CGLIB Proxy Inheritance Model
+                     [ StudentService ]
+                             ▲
+                             │ extends
+                   [ CGLIB Proxy Object ]
+```
+
+### 7.2 JDK Dynamic Proxy Mechanics
+JDK Dynamic Proxy creates a proxy by **implementing a shared interface** (`class Proxy implements StudentServiceInterface`).
+
+```
+                JDK Dynamic Proxy Interface Model
+                   [ StudentServiceInterface ]
+                               ▲
+          ┌────────────────────┴────────────────────┐
+          │ implements                              │ implements
+[ StudentService ]                        [ JDK Dynamic Proxy ]
+```
+
+### 7.3 `this` vs. `target` Designators
+* **`target(com.service.StudentService)`**: Matches if the **actual target business object** is of type `StudentService`.
+* **`this(com.service.StudentService)`**: Matches if the **generated proxy object** is of type `StudentService`.
+
+```
+                      Behavior Matrix: `this` vs. `target`
+ ┌──────────────────────┬─────────────────────────┬─────────────────────────┐
+ │ Proxy Type           │ target(StudentService)  │ this(StudentService)    │
+ ├──────────────────────┼─────────────────────────┼─────────────────────────┤
+ │ CGLIB Proxy          │ ✅ Matches              │ ✅ Matches (Proxy extends StudentService) │
+ │ JDK Dynamic Proxy    │ ✅ Matches              │ ❌ FAILS (Proxy implements Interface, NOT StudentService) │
+ └──────────────────────┴─────────────────────────┴─────────────────────────┘
+```
+
+### 7.4 Switching Proxy Types in Spring Boot
+To force Spring Boot to use JDK Dynamic Proxies (when interfaces are implemented), set the property in `application.properties`:
+
+```properties
+spring.aop.proxy-target-class=false
+```
+
+---
+
+💡 **Would you like to generate an interactive Quiz or a Flashcard deck covering these Spring AOP Pointcut and Proxy concepts?**
+
+# 📚 Complete Video Notes: Custom Annotations in Spring AOP | `@annotation` Binding & Proxies (Video #25)
+
+---
+
+## 1. Introduction & Core Objective
+
+Spring AOP (Aspect-Oriented Programming) का वास्तविक सामर्थ्य तब सामने आता है जब हम पैकेज/मेथड सिग्नेचर-बेस्ड पॉइंटकट्स लिखने के बजाय **Custom Annotations** का उपयोग करते हैं। 
+
+कस्टम एनोटेशंस हमें एक **डिक्लेरेटिव (Declarative) तरीक़ा** प्रदान करती हैं। इससे डेवलपर को केवल बिजनेस मेथड के ऊपर एनोटेशन (जैसे `@TrackExecutionTime` या `@Authenticate`) लगानी होती है, और उसका संपूर्ण इंफ्रास्ट्रक्चर लॉजिक (लॉगिंग, परफॉरमेंस ट्रैकिंग, ऑथेंटिकेशन) AOP Aspect द्वारा अलग से इंटरसेप्ट होकर निष्पादित हो जाता है।
+
+---
+
+## 2. Project Architecture & Setup
+
+प्रयोग के लिए निम्नलिखित लेयर्ड आर्किटेक्चर सेटअप किया गया है:
+
+* **`StudentController`**: वेब एंडपॉइंट्स (`POST /api/students` और `GET /api/students`) रखता है।
+* **`StudentService`**: बिज़नेस लॉजिक रखता है जिसमें दो मुख्य मेथड्स हैं — `createStudent(StudentDTO student)` और `getStudent(String data)`।
+* **`StudentDTO`**: डेटा ट्रांसफर ऑब्जेक्ट।
+* **`SimpleAspect`**: क्रॉस-कटिंग इंटरसेप्शन लॉजिक रखने वाली एस्पेक्ट क्लास।
+
+```
+[ Client / Postman ] ──► [ StudentController ] ──► [ StudentService ] ──► [ Aspect Interceptor ]
+```
+
+---
+
+## 3. The Evolution: From `execution()` to `@annotation` Designator
+
+### 3.1 `execution()` की सीमाएँ
+पारंपरिक `execution(* in.codearmy.service.StudentService.getStudent(..))` पॉइंटकट एक्सप्रेशन में मेथड का पूरा पैकेज पाथ, क्लास नाम और पैरामीटर टाइप hardcode करना पड़ता है। 
+
+### 3.2 `@annotation` Designator का लाभ
+`@annotation` डेज़िग्नेटर का उपयोग करके हम किसी भी ऐसे मेथड को इंटरसेप्ट कर सकते हैं जिस पर कोई विशिष्ट एनोटेशन (जैसे `@Timestamp` या हमारी खुद की Custom Annotation) लगी हो:
+
+```java
+// Intercepts any method annotated with @Timestamp
+@Before("@annotation(java.lang.annotation.Timestamp)")
+public void logBefore(JoinPoint joinPoint) {
+    System.out.println("Method Intercepted via Annotation!");
+}
+```
+
+---
+
+## 4. Creating a Custom Annotation in Java (`@interface`)
+
+जावा में एनोटेशन बनाने के लिए `class` या `interface` के स्थान पर **`@interface`** कीवर्ड का उपयोग किया जाता है:
+
+```java
+package in.codearmy.annotation;
+
+public @interface TrackExecutionTime {
+    // Custom Annotation Definition
+}
+```
+
+### Marker Annotation vs. Configured Annotation
+1. **Marker Annotation**: इसमें कोई फ़ील्ड्स या मेथड्स नहीं होते। इसका उपयोग केवल मेथड को मार्क (Mark) करने के लिए होता है।
+2. **Configured Annotation**: इसमें पैरामीटर्स/प्रॉपर्टीज (जैसे `warnAfter`, `operation`) होती हैं जो extra metadata प्रदान करती हैं।
+
+---
+
+## 5. Essential Meta-Annotations Breakdown
+
+जब हम कोई कस्टम एनोटेशन बनाते हैं, तो उस एनोटेशन के ऊपर कुछ विशेष **Meta-Annotations** (एनोटेशन की एनोटेशन) लगानी होती हैं:
+
+```
+                                  Meta-Annotations
+                                         │
+         ┌───────────────────────────────┼───────────────────────────────┐
+         ▼                               ▼                               ▼
+     @Target                         @Retention                      @Documented
+  ──────────────                   ──────────────                   ─────────────
+  Where can it be applied?         How long is it available?        Include in JavaDocs?
+  e.g., ElementType.METHOD         e.g., RetentionPolicy.RUNTIME    e.g., Included in docs
+```
+
+### 5.1 `@Target` (Where can the annotation be applied?)
+`@Target` यह निर्दिष्ट करता है कि कस्टम एनोटेशन कोड में कहाँ-कहाँ लगाई जा सकती है:
+
+```java
+@Target(ElementType.METHOD) // Restricted strictly to methods!
+```
+
+* **`ElementType.METHOD`**: केवल मेथड्स पर लागू होगी।
+* **`ElementType.TYPE`**: केवल क्लासेस, इंटरफेसेस या रिकॉर्ड्स पर लागू होगी।
+* **`ElementType.FIELD` / `PARAMETER`**: फील्ड्स या पैरामीटर्स के लिए।
+* *यदि `@Target` न लगाया जाए, तो एनोटेशन डिफ़ॉल्ट रूप से हर जगह (Class, Method, Field) अलाउ हो जाती है।*
+
+---
+
+### 5.2 `@Retention` (How long is the annotation available?)
+`@Retention` यह तय करता है कि एनोटेशन की जानकारी कोड के जीवनचक्र में कब तक सुरक्षित रहेगी:
+
+```java
+@Retention(RetentionPolicy.RUNTIME) // Required for AOP Interception!
+```
+
+* **`RetentionPolicy.SOURCE`**: केवल सोर्स कोड में रहती है; कंपाइलर द्वारा डिस्कार्ड कर दी जाती है (e.g., `@Override`)।
+* **`RetentionPolicy.CLASS`**: कम्पाउल्ड `.class` बाइटकोड में रहती है, लेकिन रनटाइम पर JVM में लोड नहीं होती।
+* **`RetentionPolicy.RUNTIME`**: **रनटाइम पर उपलब्ध रहती है**। Spring AOP प्रॉक्सीज़ को रनटाइम पर बीन्स का निरीक्षण करके पॉइंटकट मैच करने के लिए `RUNTIME` रिटेंशन अनिवार्य है।
+
+---
+
+### 5.3 `@Documented`
+`@Documented` यह सुनिश्चित करता है कि जब एप्लीकेशन का JavaDoc जनरेट किया जाए, तब यह एनोटेशन डॉक्यूमेंटेशन में दिखाई दे।
+
+---
+
+## 6. Building the Execution Time Tracker (`@TrackExecutionTime`)
+
+### 6.1 Custom Annotation Definition
+```java
+package in.codearmy.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TrackExecutionTime {
+    // Configured Attributes with Default Values
+    long warnAfter() default 2000; // Warning threshold in milliseconds
+    String operation() default ""; // Name of the operation
+}
+```
+
+---
+
+### 6.2 The Aspect Implementation (`@Around` Advice)
+
+एग्जीक्यूशन टाइम ट्रैक करने के लिए `@Around` एडवाइस और `ProceedingJoinPoint` का उपयोग किया जाता है:
+
+```java
+@Aspect
+@Component
+public class PerformanceAspect {
+
+    @Around("@annotation(trackExecutionTime)") // Binding Form
+    public Object measureExecutionTime(ProceedingJoinPoint pjp, TrackExecutionTime trackExecutionTime) throws Throwable {
+        
+        long startTime = System.currentTimeMillis(); // 1. Start Timer
+        Object result = null;
+
+        try {
+            // 2. Execute Target Method & Capture Return Value
+            result = pjp.proceed(); 
+            return result; // Preserve return value for client
+
+        } finally {
+            // 3. Guaranteed execution even if target throws Exception
+            long duration = System.currentTimeMillis() - startTime; //
+
+            // Extract Metadata Attributes from Custom Annotation
+            String operation = trackExecutionTime.operation();
+            if (operation.isBlank()) {
+                operation = pjp.getSignature().getName(); // Fallback to method name
+            }
+
+            long warningThreshold = trackExecutionTime.warnAfter(); //
+
+            // Threshold Alert Evaluation
+            if (duration >= warningThreshold) {
+                System.out.println("SLOW OPERATION ALERT! Time taken by " + operation + ": " + duration + " ms"); //
+            } else {
+                System.out.println("Time taken by " + operation + ": " + duration + " ms"); //
+            }
+        }
+    }
+}
+```
+
+---
+
+## 7. Pointcut Expressions: Type Matching vs. Parameter Binding Form
+
+एस्पेक्ट में कस्टम एनोटेशन को पास करने के दो तरीके हैं:
+
+### 7.1 Type Matching Form
+एनोटेशन का पूरा FQCN (Fully Qualified Class Name) पाथ स्ट्रिंग के रूप में देना:
+```java
+@Around("@annotation(in.codearmy.annotation.TrackExecutionTime)")
+public Object measure(ProceedingJoinPoint pjp) throws Throwable { ... }
+```
+
+### 7.2 Parameter Binding Form (Recommended)
+एडवाइस मेथड के पैरामीटर में एनोटेशन ऑब्जेक्ट को प्राप्त करना:
+```java
+@Around("@annotation(trackTimeAttr)")
+public Object measure(ProceedingJoinPoint pjp, TrackExecutionTime trackTimeAttr) throws Throwable {
+    long threshold = trackTimeAttr.warnAfter(); // Access annotation attributes directly!
+    ...
+}
+```
+* **नियम**: एडवाइस मेथड में पैरामीटर का नाम (`trackTimeAttr`) और `@annotation()` में लिखा नाम बिल्कुल समान होना चाहिए।
+
+---
+
+## 8. Applying Configured Annotations in Business Logic
+
+सर्विस लेयर में कस्टम एनोटेशन का उपयोग:
+
+```java
+@Service
+public class StudentService {
+
+    // Overriding warning threshold to 1500ms and setting custom operation name
+    @TrackExecutionTime(warnAfter = 1500, operation = "Get Student Data") //
+    public String getStudent(String data) {
+        try {
+            Thread.sleep(2000); // Mimicking slow operation
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return "All Student Data";
+    }
+
+    @TrackExecutionTime(warnAfter = 2000, operation = "Creating New Student") //
+    public StudentDTO createStudent(StudentDTO student) {
+        System.out.println("Student Saved");
+        return student;
+    }
+}
+```
+
+---
+
+## 9. Spring Bean Lifecycle & Proxy Creation Mechanics (Deep Internals)
+
+AOP में सबसे महत्वपूर्ण साक्षात्कार प्रश्न: *एप्लिकेशन स्टार्ट होने पर प्रॉक्सी ऑब्जेक्ट किस समय और कैसे बनता है?*
+
+```
+  1. Read BeanDefinitions ──► 2. Instantiate Bean ──► 3. Inject Dependencies
+                                                               │
+                                                               v
+  6. Proxy Substitution ◄── 5. Run BeanPostProcessor ◄── 4. Initialization Callbacks
+  (CGLIB / JDK Proxy)      (postProcessAfterInitialization)  (@PostConstruct)
+```
+
+### 9.1 The Role of `BeanPostProcessor`
+`BeanPostProcessor` स्प्रिंग का एक स्पेशल इंटरफ़ेस है जिसके पास दो मुख्य कॉलबैक मेथड्स होते हैं:
+
+```java
+public interface BeanPostProcessor {
+    default Object postProcessBeforeInitialization(Object bean, String beanName) { return bean; } //
+    default Object postProcessAfterInitialization(Object bean, String beanName) { return bean; }  //
+}
+```
+
+---
+
+### 9.2 Step-by-Step Internal Flow of Proxy Substitution
+
+1. **Bean Instantiation**: Spring IoC कंटेनर `StudentService` का ओरिजिनल ऑब्जेक्ट (Target Object) बनाता है।
+2. **Dependency Injection & `@PostConstruct`**: फ़ील्ड्स इंजेक्ट होती हैं और इनिशियलाइज़ेशन कॉलबैक्स निष्पादित होते हैं।
+3. **`postProcessAfterInitialization` Trigger**: `BeanPostProcessor` सक्रिय होता है।
+4. **Aspect Evaluation**: `BeanPostProcessor` पूरी एप्लिकेशन में बने एस्पेक्ट्स की जाँच करता है कि क्या `StudentService` के किसी मेथड पर कोई Pointcut (जैसे `@TrackExecutionTime`) लागू हो रहा है।
+5. **Proxy Generation & Injection**:
+   * **यदि एस्पेक्ट मैच होता है (YES)**: `BeanPostProcessor` ओरिजिनल `StudentService` बीन्स के स्थान पर एक **Proxy Object** (CGLIB / JDK Dynamic Proxy) बनाकर `ApplicationContext` में सेव कर देता है।
+   * **यदि एस्पेक्ट मैच नहीं होता (NO)**: ओरिजिनल `StudentService` ऑब्जेक्ट को ही बीन्स के रूप में रहने दिया जाता है।
+6. **Auto-Wiring**: जब `StudentController` में `StudentService` ऑटोवायर होती है, तो उसे असली `StudentService` नहीं, बल्कि `BeanPostProcessor` द्वारा लौटाया गया **Proxy Object** प्राप्त होता है।
+
+---
+
+### 9.3 Startup Performance Optimization (Method-to-Pointcut Mapping)
+* **Fast Lookups**: एप्लिकेशन स्टार्टअप के समय ही स्प्रिंग फ्रेमवर्क सभी एस्पेक्ट्स और पॉइंटकट्स को स्कैन करके एक कुशल डेटा स्ट्रक्चर (Efficient Data Structure) में **`Method-to-Pointcut` मैपिंग टेबल** बनाकर स्टोर कर लेता है।
+* **Zero Runtime Overhead**: रनटाइम पर जब कोई मेथड इनवोक होता है, तो स्प्रिंग को सभी एस्पेक्ट्स सर्च नहीं करने पड़ते; वह सीधे O(1) लुकअप से तय कर लेता है कि इंटरसेप्शन चलाना है या नहीं।
+
+---
+
+## 10. Summary Checklist
+
+* **`@interface`**: कस्टम एनोटेशन डिक्लेयर करने का कीवर्ड।
+* **`@Target(ElementType.METHOD)`**: एनोटेशन को केवल मेथड्स तक सीमित करता है।
+* **`@Retention(RetentionPolicy.RUNTIME)`**: AOP इंटरसेप्शन के लिए रनटाइम उपलब्धता सुनिश्चित करता है।
+* **`@annotation` Binding**: एडवाइस मेथड पैरामीटर में एनोटेशन ऑब्जेक्ट प्राप्त करके उसकी प्रॉपर्टीज (`warnAfter`, `operation`) को एक्सेस करने की तकनीक।
+* **`BeanPostProcessor`**: `postProcessAfterInitialization` चरण में ओरिजिनल बीन्स को प्रॉक्सी बीन्स से बदलने वाला मुख्य घटक।
+
+---
+
+💡 **क्या आप Custom Annotations और AOP Proxy Creation के इन कांसेप्ट्स पर आधारित अभ्यास के लिए कोई Interactive Quiz या Flashcards बनाना चाहेंगे?**
